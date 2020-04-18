@@ -270,6 +270,7 @@ i:hover>i {
 
 .contacs_social a:hover {
     color: var(--main-red);
+    transform: translateX(10px);
 }
 
 .contact-details {
@@ -279,10 +280,6 @@ i:hover>i {
     text-decoration: none;
     padding: 20px 10px;
     transition: transform 0.3s ease-out;
-}
-
-.contact-details:hover {
-    transform: translateY(8px);
 }
 
 footer {

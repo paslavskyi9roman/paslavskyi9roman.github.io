@@ -309,6 +309,8 @@ i:hover > i {
 
 .contacs_social a:hover {
   color: var(--main-red);
+  -webkit-transform: translateX(10px);
+          transform: translateX(10px);
 }
 
 .contact-details {
@@ -321,11 +323,6 @@ i:hover > i {
   transition: -webkit-transform 0.3s ease-out;
   transition: transform 0.3s ease-out;
   transition: transform 0.3s ease-out, -webkit-transform 0.3s ease-out;
-}
-
-.contact-details:hover {
-  -webkit-transform: translateY(8px);
-          transform: translateY(8px);
 }
 
 footer {
