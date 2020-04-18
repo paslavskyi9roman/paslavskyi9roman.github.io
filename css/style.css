@@ -45,9 +45,10 @@ body {
 
 :root {
   --main-white: #f0f0f0;
-  --main-red: #be3144;
-  --main-blue: #45567d;
-  --main-gray: #303841;
+  --main-orange: #e67e22;
+  --main-red: #BD3147;
+  --main-gray: #304145;
+  --main-blue: #BAC7CE;
 }
 
 body {
@@ -86,7 +87,6 @@ header {
   top: 0;
   left: 0;
   width: 100%;
-  background: var(--main-red);
   -webkit-box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
           box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
   z-index: 10;
@@ -112,11 +112,38 @@ header ul li a {
 
 li:hover {
   background: var(--main-blue);
+  color: var(--main-red);
+}
+
+li:hover a {
+  color: var(--main-red);
 }
 
 main {
   background: var(--main-gray);
   height: 2100px;
+}
+
+.image-bg {
+  height: 100%;
+  width: 100%;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  background-image: url(/img/IMG_6266.JPG);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: top;
 }
 
 .welcome-section {
@@ -137,6 +164,7 @@ main {
   height: 100vh;
   background-color: #000;
   background-image: linear-gradient(62deg, #3a3d40 0%, #181719 100%);
+  z-index: 100;
 }
 
 .welcome-section h1 {
@@ -147,7 +175,6 @@ main {
   font-size: 3rem;
   font-weight: 200;
   font-style: italic;
-  color: var(--main-red);
   margin: 0;
 }
 
@@ -272,6 +299,10 @@ i:hover > i {
 
 .contacts .contacs_social {
   margin-top: 40px;
+}
+
+.contacs_social a:hover {
+  color: var(--main-red);
 }
 
 .contact-details {

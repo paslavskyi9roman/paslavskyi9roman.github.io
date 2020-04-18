@@ -44,9 +44,10 @@ body {
 
 :root {
     --main-white: #f0f0f0;
-    --main-red: #be3144;
-    --main-blue: #45567d;
-    --main-gray: #303841;
+    --main-orange: #e67e22;
+    --main-red: #BD3147;
+    --main-gray: #304145;
+    --main-blue: #BAC7CE;
 }
 
 body {
@@ -73,6 +74,8 @@ h2 {
     font-size: 4.2rem;
 }
 
+
+
 header {
     position: fixed;
     justify-content: flex-end;
@@ -81,7 +84,6 @@ header {
     top: 0;
     left: 0;
     width: 100%;
-    background: var(--main-red);
     box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
     z-index: 10;
 
@@ -104,11 +106,30 @@ header {
 
 li:hover {
     background: var(--main-blue);
+    color: var(--main-red);
+}
+
+li:hover a {
+    color: var(--main-red);
 }
 
 main {
     background: var(--main-gray);
     height: 2100px;
+}
+
+.image-bg {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-image: url(/img/IMG_6266.JPG);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: top;
+
 }
 
 .welcome-section {
@@ -129,9 +150,10 @@ main {
         font-size: 3rem;
         font-weight: 200;
         font-style: italic;
-        color: var(--main-red);
         margin: 0;
     }
+
+    z-index: 100;
 }
 
 .projects {
@@ -237,6 +259,10 @@ i:hover>i {
     .contacs_social {
         margin-top: 40px;
     }
+}
+
+.contacs_social a:hover {
+    color: var(--main-red);
 }
 
 .contact-details {
