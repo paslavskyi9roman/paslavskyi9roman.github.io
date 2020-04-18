@@ -1,5 +1,13 @@
 * {
     box-sizing: border-box;
+
+    a:visited {
+        color: var(--main-white);
+    }
+
+    a {
+        text-decoration: none;
+    }
 }
 
 html,
@@ -84,7 +92,6 @@ header {
     top: 0;
     left: 0;
     width: 100%;
-    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
     z-index: 10;
 
     ul {
@@ -105,7 +112,7 @@ header {
 }
 
 li:hover {
-    background: var(--main-blue);
+    background: rgba(186, 199, 206, 0.3);
     color: var(--main-red);
 }
 
