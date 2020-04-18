@@ -1,6 +1,6 @@
 * {
   -webkit-box-sizing: border-box;
-          box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 html,
@@ -46,9 +46,9 @@ body {
 :root {
   --main-white: #f0f0f0;
   --main-orange: #e67e22;
-  --main-red: #BD3147;
+  --main-red: #bd3147;
   --main-gray: #304145;
-  --main-blue: #BAC7CE;
+  --main-blue: #bac7ce;
 }
 
 body {
@@ -77,21 +77,10 @@ h2 {
 
 header {
   position: fixed;
-  -webkit-box-pack: end;
-      -ms-flex-pack: end;
-          justify-content: flex-end;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
+  justify-content: flex-end;
   width: 100%;
-  top: 0;
-  left: 0;
-  width: 100%;
-  -webkit-box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
-          box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
-  z-index: 10;
 }
-
 header ul {
   list-style: none;
   display: -webkit-box;
@@ -111,7 +100,7 @@ header ul li a {
 }
 
 li:hover {
-  background: var(--main-blue);
+  background: rgba(186, 199, 206, 0.3);
   color: var(--main-red);
 }
 
@@ -132,14 +121,14 @@ main {
   display: flex;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
-      -ms-flex-direction: column;
-          flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
   -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
   -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
   background-image: url(https://i.imgur.com/Bx3OpRJ.jpg);
   background-repeat: no-repeat;
   background-size: cover;
@@ -152,14 +141,14 @@ main {
   display: flex;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
-      -ms-flex-direction: column;
-          flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
   -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
   -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
   width: 100%;
   height: 100vh;
   background-color: #000;
@@ -197,9 +186,9 @@ main {
   display: -ms-flexbox;
   display: flex;
   -ms-flex-wrap: wrap;
-      flex-wrap: wrap;
+  flex-wrap: wrap;
   -ms-flex-pack: distribute;
-      justify-content: space-around;
+  justify-content: space-around;
 }
 
 .projects .cards a {
@@ -219,7 +208,7 @@ main {
   width: 400px;
   height: 400px;
   -o-object-fit: cover;
-     object-fit: cover;
+  object-fit: cover;
 }
 
 .projects .cards .project-title {
@@ -252,7 +241,7 @@ button:hover {
 i {
   margin-left: 10px;
   -webkit-transform: translateX(0);
-          transform: translateX(0);
+  transform: translateX(0);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
   transition: transform 0.3s ease-out;
@@ -261,7 +250,7 @@ i {
 
 i:hover > i {
   -webkit-transform: translateX(2px);
-          transform: translateX(2px);
+  transform: translateX(2px);
 }
 
 .contacts {
@@ -269,16 +258,16 @@ i:hover > i {
   display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
   background: var(--main-gray);
   -webkit-box-align: middle;
-      -ms-flex-align: middle;
-          align-items: middle;
+  -ms-flex-align: middle;
+  align-items: middle;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
-      -ms-flex-direction: column;
-          flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
   text-align: center;
   height: 80vh;
 }
@@ -319,7 +308,7 @@ i:hover > i {
 
 .contact-details:hover {
   -webkit-transform: translateY(8px);
-          transform: translateY(8px);
+  transform: translateY(8px);
 }
 
 footer {
@@ -328,8 +317,8 @@ footer {
   display: -ms-flexbox;
   display: flex;
   -webkit-box-pack: space-evenly;
-      -ms-flex-pack: space-evenly;
-          justify-content: space-evenly;
+  -ms-flex-pack: space-evenly;
+  justify-content: space-evenly;
   padding: 2rem;
   background: var(--main-gray);
   border-top: 4px solid var(--main-red);
