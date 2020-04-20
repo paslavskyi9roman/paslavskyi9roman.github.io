@@ -210,8 +210,10 @@ main {
   }
 }
 
-.expand-projects {
-  background-color: red($color: #000000);
+.expand {
+  background-color: #bd3147;
+  height: 300px;
+  background-image: url(/img/relaxing-app_preview.jpg);
 }
 
 button {
@@ -235,7 +237,7 @@ i {
   transition: transform 0.3s ease-out;
 }
 
-i:hover>i {
+i:hover > i {
   transform: translateX(2px);
 }
 
@@ -249,7 +251,6 @@ i:hover>i {
   height: 80vh;
 
   .contacts_title {
-
     h2,
     p {
       margin: 0;
@@ -298,7 +299,7 @@ footer {
   }
 }
 
-footer>p {
+footer > p {
   margin: 2rem;
 }
 
