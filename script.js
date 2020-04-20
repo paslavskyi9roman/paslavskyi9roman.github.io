@@ -1,10 +1,6 @@
-const header = document.querySelector('.header');
-const hero = document.querySelector('welcome-section');
-const tl = new TimelineMax();
+const projects = document.getElementById('projects');
+const toggle = document.getElementById('open-button');
 
-tl.fromTo(
-  header,
-  1,
-  { height: '0%' },
-  { height: '80%', ease: Power2.easeInOut }
-).fromTo(hero, 1, { height: '0%' }, { height: '80%', ease: Power2.easeInOut });
+toggle.addEventListener('click', () =>
+  projects.classList.add('expand-projects')
+);

@@ -210,6 +210,10 @@ main {
   }
 }
 
+.expand-projects {
+  background-color: red($color: #000000);
+}
+
 button {
   font-size: 2rem;
   background: var(--main-gray);
@@ -231,7 +235,7 @@ i {
   transition: transform 0.3s ease-out;
 }
 
-i:hover > i {
+i:hover>i {
   transform: translateX(2px);
 }
 
@@ -245,6 +249,7 @@ i:hover > i {
   height: 80vh;
 
   .contacts_title {
+
     h2,
     p {
       margin: 0;
@@ -293,7 +298,7 @@ footer {
   }
 }
 
-footer > p {
+footer>p {
   margin: 2rem;
 }
 
