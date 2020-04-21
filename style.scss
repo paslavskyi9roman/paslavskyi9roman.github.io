@@ -177,45 +177,38 @@ main {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-around;
+  }
 
-    a {
-      background: var(--main-gray);
-      margin: 0 0 2rem 0;
+  a {
+    background: var(--main-gray);
+    margin: 0 0 2rem 0;
 
-      :hover .code {
-        color: #ff7f50;
-      }
+    :hover .code {
+      color: #ff7f50;
+    }
 
-      p {
-        margin: 0px;
-      }
+    p {
+      margin: 0px;
+    }
 
-      img {
-        width: 400px;
-        height: 400px;
-        object-fit: cover;
-      }
+    img {
+      width: 400px;
+      height: 400px;
+      object-fit: cover;
+    }
 
-      .project-title {
-        font-size: 2rem;
-        padding: 2rem 0.5rem;
-        color: var(--main-white);
-      }
+    .project-title {
+      font-size: 2rem;
+      padding: 2rem 0.5rem;
+      color: var(--main-white);
+    }
 
-      .code {
-        color: var(--main-gray);
-        transition: color 0.3s ease-out;
-      }
+    .code {
+      color: var(--main-gray);
+      transition: color 0.3s ease-out;
     }
   }
 
-  .expand-cards {
-    display: none !important;
-  }
-
-  .expand-cards.show-cards {
-    display: block !important;
-  }
   .hide {
     display: none;
   }
@@ -242,7 +235,7 @@ i {
   transition: transform 0.3s ease-out;
 }
 
-i:hover > i {
+i:hover>i {
   transform: translateX(2px);
 }
 
@@ -256,6 +249,7 @@ i:hover > i {
   height: 80vh;
 
   .contacts_title {
+
     h2,
     p {
       margin: 0;

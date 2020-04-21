@@ -208,44 +208,36 @@ main {
       justify-content: space-around;
 }
 
-.projects .cards a {
+.projects a {
   background: var(--main-gray);
   margin: 0 0 2rem 0;
 }
 
-.projects .cards a :hover .code {
+.projects a :hover .code {
   color: #ff7f50;
 }
 
-.projects .cards a p {
+.projects a p {
   margin: 0px;
 }
 
-.projects .cards a img {
+.projects a img {
   width: 400px;
   height: 400px;
   -o-object-fit: cover;
      object-fit: cover;
 }
 
-.projects .cards a .project-title {
+.projects a .project-title {
   font-size: 2rem;
   padding: 2rem 0.5rem;
   color: var(--main-white);
 }
 
-.projects .cards a .code {
+.projects a .code {
   color: var(--main-gray);
   -webkit-transition: color 0.3s ease-out;
   transition: color 0.3s ease-out;
-}
-
-.projects .expand-cards {
-  display: none !important;
-}
-
-.projects .expand-cards.show-cards {
-  display: block !important;
 }
 
 .projects .hide {
