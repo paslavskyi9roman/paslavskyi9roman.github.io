@@ -189,31 +189,36 @@ main {
       p {
         margin: 0px;
       }
-    }
 
-    img {
-      width: 400px;
-      height: 400px;
-      object-fit: cover;
-    }
+      img {
+        width: 400px;
+        height: 400px;
+        object-fit: cover;
+      }
 
-    .project-title {
-      font-size: 2rem;
-      padding: 2rem 0.5rem;
-      color: var(--main-white);
-    }
+      .project-title {
+        font-size: 2rem;
+        padding: 2rem 0.5rem;
+        color: var(--main-white);
+      }
 
-    .code {
-      color: var(--main-gray);
-      transition: color 0.3s ease-out;
+      .code {
+        color: var(--main-gray);
+        transition: color 0.3s ease-out;
+      }
     }
   }
-}
 
-.expand {
-  background-color: #bd3147;
-  height: 300px;
-  background-image: url(/img/relaxing-app_preview.jpg);
+  .expand-cards {
+    display: none !important;
+  }
+
+  .expand-cards.show-cards {
+    display: block !important;
+  }
+  .hide {
+    display: none;
+  }
 }
 
 button {
@@ -297,12 +302,12 @@ footer {
     color: var(--main-grey);
     text-decoration: none;
   }
-}
 
-footer > p {
-  margin: 2rem;
-}
+  i {
+    vertical-align: middle;
+  }
 
-footer i {
-  vertical-align: middle;
+  p {
+    margin: 2rem;
+  }
 }
