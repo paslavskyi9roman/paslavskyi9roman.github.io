@@ -114,6 +114,7 @@ header ul li a {
   text-decoration: none;
   color: var(--main-white);
   font-size: 2.2rem;
+  text-shadow: -1px -1px 1px rgba(255, 255, 255, 0.1), 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 li:hover {
@@ -175,6 +176,7 @@ main {
 
 .welcome-section h1 {
   margin: 0;
+  text-shadow: -1px -1px 1px rgba(255, 255, 255, 0.1), 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 .welcome-section p {
@@ -182,6 +184,7 @@ main {
   font-weight: 200;
   font-style: italic;
   margin: 0;
+  text-shadow: -1px -1px 1px rgba(255, 255, 255, 0.1), 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 .projects {
@@ -194,6 +197,7 @@ main {
   max-width: 640px;
   margin: 0 auto 6rem auto;
   border-bottom: 0.2rem solid var(--main-white);
+  text-shadow: -1px -1px 1px rgba(255, 255, 255, 0.1), 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 .projects .cards {
@@ -211,10 +215,6 @@ main {
 .projects a {
   background: var(--main-gray);
   margin: 0 0 2rem 0;
-}
-
-.projects a :hover .code {
-  color: #ff7f50;
 }
 
 .projects a p {
@@ -240,6 +240,17 @@ main {
   transition: color 0.3s ease-out;
 }
 
+.projects a:hover {
+  -webkit-box-shadow: 10px 10px 25px -3px rgba(0, 0, 0, 0.81);
+  box-shadow: 10px 10px 25px -3px rgba(0, 0, 0, 0.81);
+  -webkit-transform: translate(-5px, -5px);
+          transform: translate(-5px, -5px);
+}
+
+.projects a:hover .code {
+  color: #ff7f50;
+}
+
 .projects .hide {
   display: none;
 }
@@ -254,6 +265,7 @@ button {
   border-radius: 2px;
   color: var(--main-grey);
   border: none;
+  margin-top: 1em;
 }
 
 button:hover {
@@ -275,6 +287,27 @@ i:hover > i {
           transform: translateX(2px);
 }
 
+.about-me {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  width: 100%;
+  height: 500vh;
+  background-color: #000;
+  background-image: linear-gradient(62deg, #3a3d40 0%, #181719 100%);
+}
+
+.about-me .about-img {
+  height: 400px;
+  width: 400px;
+  background-color: red !important;
+  background-image: url(/img/IMG_6253.JPG) no-repeat center cover;
+}
+
 .contacts {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -294,6 +327,10 @@ i:hover > i {
   height: 80vh;
 }
 
+.contacts .contacts_title {
+  margin-bottom: 20px;
+}
+
 .contacts .contacts_title h2,
 .contacts .contacts_title p {
   margin: 0;
@@ -309,25 +346,85 @@ i:hover > i {
 }
 
 .contacts .contacs_social {
-  margin-top: 40px;
+  width: 100%;
+  text-align: center;
 }
 
-.contacs_social a:hover {
+.contacts .contacs_social .contact-details {
+  display: inline-block;
+  width: 90px;
+  height: 90px;
+  background: #f1f1f1;
+  margin: 10px;
+  border-radius: 30%;
+  -webkit-box-shadow: 0 5px 15px -5px #000070;
+          box-shadow: 0 5px 15px -5px #000070;
   color: var(--main-red);
-  -webkit-transform: translateX(10px);
-          transform: translateX(10px);
+  overflow: hidden;
+  position: relative;
 }
 
-.contact-details {
-  font-size: 2.4rem;
-  text-shadow: 2px 2px 1px #1f1f1f;
-  color: var(--main-grey);
-  text-decoration: none;
-  padding: 20px 10px;
-  -webkit-transition: -webkit-transform 0.3s ease-out;
-  transition: -webkit-transform 0.3s ease-out;
-  transition: transform 0.3s ease-out;
-  transition: transform 0.3s ease-out, -webkit-transform 0.3s ease-out;
+.contacts .contacs_social .contact-details i {
+  line-height: 90px;
+  font-size: 32px;
+  -webkit-transition: 0.2s linear;
+  transition: 0.2s linear;
+  margin: 0;
+}
+
+.contacts .contacs_social .contact-details:hover i {
+  -webkit-transform: scale(1.3);
+          transform: scale(1.3);
+  color: #f1f1f1;
+}
+
+.contacts .contacs_social .contact-details::before {
+  content: '';
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  background: var(--main-red);
+  -webkit-transform: rotate(45deg);
+          transform: rotate(45deg);
+  left: -110%;
+  top: 90%;
+}
+
+.contacts .contacs_social .contact-details:hover:before {
+  -webkit-animation: aaa 0.7s 1;
+          animation: aaa 0.7s 1;
+  top: -10%;
+  left: -10%;
+}
+
+@-webkit-keyframes aaa {
+  0% {
+    left: -110%;
+    top: 90%;
+  }
+  50% {
+    left: 10%;
+    top: -30%;
+  }
+  100% {
+    top: -10%;
+    left: -10%;
+  }
+}
+
+@keyframes aaa {
+  0% {
+    left: -110%;
+    top: 90%;
+  }
+  50% {
+    left: 10%;
+    top: -30%;
+  }
+  100% {
+    top: -10%;
+    left: -10%;
+  }
 }
 
 footer {
