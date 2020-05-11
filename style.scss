@@ -25,27 +25,6 @@ ul {
   font-size: 62.5%;
 }
 
-/* 1200px / 16px = 75em */
-@media (max-width: 75em) {
-  html {
-    font-size: 60%;
-  }
-}
-
-/* 980px / 16px = 61.25em */
-@media (max-width: 61.25em) {
-  html {
-    font-size: 58%;
-  }
-}
-
-/* 460px / 16px = 28.75em */
-@media (max-width: 28.75em) {
-  html {
-    font-size: 55%;
-  }
-}
-
 body {
   line-height: 1;
 }
@@ -84,8 +63,8 @@ h2 {
 
 header {
   position: fixed;
-  justify-content: flex-end;
   display: flex;
+  justify-content: flex-end;
   width: 100%;
   top: 0;
   left: 0;
@@ -145,8 +124,6 @@ main {
   align-items: center;
   width: 100%;
   height: 100vh;
-  background-color: #000;
-  background-image: linear-gradient(62deg, #3a3d40 0%, #181719 100%);
 
   h1 {
     margin: 0;
@@ -349,20 +326,6 @@ i:hover > i {
   }
 }
 
-// .contacs_social a:hover {
-//     color: var(--main-red);
-//     transform: translateX(10px);
-// }
-
-// .contact-details {
-//     font-size: 2.4rem;
-//     text-shadow: 2px 2px 1px #1f1f1f;
-//     color: var(--main-grey);
-//     text-decoration: none;
-//     padding: 20px 10px;
-//     transition: transform 0.3s ease-out;
-// }
-
 footer {
   font-weight: 300;
   display: flex;
@@ -382,5 +345,39 @@ footer {
 
   p {
     margin: 2rem;
+  }
+}
+
+// Media queries
+
+/* 1200px / 16px = 75em */
+@media (max-width: 75em) {
+  html {
+    font-size: 60%;
+  }
+  header {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+/* 980px / 16px = 61.25em */
+@media (max-width: 61.25em) {
+  html {
+    font-size: 58%;
+  }
+  header {
+    display: flex;
+    justify-content: center;
+  }
+  .image-bg {
+    background-position: right;
+  }
+}
+
+/* 460px / 16px = 28.75em */
+@media (max-width: 28.75em) {
+  html {
+    font-size: 55%;
   }
 }
