@@ -469,4 +469,10 @@ footer p {
     font-size: 55%;
   }
 }
+
+#hardcode {
+  color: var(--main-white);
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
 /*# sourceMappingURL=style.css.map */
