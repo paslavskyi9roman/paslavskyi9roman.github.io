@@ -24,5 +24,5 @@ export function GameCanvas() {
     };
   }, []);
 
-  return <div ref={containerRef} className="h-[540px] w-full" aria-label="Madrid Noir game canvas" />;
+  return <div ref={containerRef} className="h-[540px] w-full" aria-label="Lienzo del juego Madrid Noir" />;
 }
