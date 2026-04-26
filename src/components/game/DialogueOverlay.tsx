@@ -21,7 +21,7 @@ export function DialogueOverlay() {
     const onClue = (event: Event) => {
       const customEvent = event as CustomEvent<{ id: string; title: string; description: string }>;
       addClue(customEvent.detail);
-      addNpcLine('¿Encontraste algo? Esa pista cambia la línea temporal.');
+      addNpcLine('¿Encontraste algo? Esa pista cambia la línea temporal.', selectedNpc ? { id: selectedNpc.id, name: selectedNpc.name } : undefined);
       completeQuest('q2');
       applyFeedback(
         { isUnderstandable: true, xpAwarded: 12, explanation: 'Encontraste una pista clave en la escena.' },
@@ -39,7 +39,7 @@ export function DialogueOverlay() {
       window.removeEventListener('madrid-noir:clue-found', onClue);
       window.removeEventListener('madrid-noir:npc-selected', onNpcSelected);
     };
-  }, [addClue, addNpcLine, applyFeedback, completeQuest, selectNpcById]);
+  }, [addClue, addNpcLine, applyFeedback, completeQuest, selectNpcById, selectedNpc]);
 
   const helper = useMemo(
     () => 'Support hint (EN/UK): Ask precise timeline questions to reveal contradictions. / Підказка: уточнюй час, щоб знайти суперечності.',
@@ -51,7 +51,7 @@ export function DialogueOverlay() {
     addPlayerLine(text);
     const outcome = NPC_OUTCOMES[selectedNpc.id]?.[text];
     if (!outcome) return;
-    addNpcLine(outcome.reply);
+    addNpcLine(outcome.reply, { id: selectedNpc.id, name: selectedNpc.name });
     applyFeedback(outcome.feedback, outcome.xpType);
     if (selectedNpc.id === 'npc_lucia_vargas' && text === '¿A qué hora llegaste a casa?') {
       completeQuest('q1');
@@ -85,7 +85,7 @@ export function DialogueOverlay() {
       });
 
       const data = (await response.json()) as { npcReply: string; feedback: DialogueFeedback };
-      addNpcLine(data.npcReply);
+      addNpcLine(data.npcReply, selectedNpc ? { id: selectedNpc.id, name: selectedNpc.name } : undefined);
       applyFeedback(data.feedback, 'vocabulary');
     } finally {
       setLoading(false);
@@ -111,7 +111,7 @@ export function DialogueOverlay() {
       <div className="mt-3 max-h-40 space-y-2 overflow-y-auto pr-1 text-sm">
         {dialogueHistory.map((line, idx) => (
           <p key={`${line.timestamp}-${idx}`}>
-            <span className={line.speaker === 'player' ? 'text-sky-300' : 'text-rose-300'}>{line.speaker === 'player' ? 'Tú' : 'Lucía'}:</span>{' '}
+            <span className={line.speaker === 'player' ? 'text-sky-300' : 'text-rose-300'}>{line.speaker === 'player' ? 'Tú' : line.npcName ?? 'NPC'}:</span>{' '}
             {line.text}
           </p>
         ))}
