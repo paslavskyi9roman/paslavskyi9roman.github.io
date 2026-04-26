@@ -3,74 +3,62 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { DialogueFeedback, DialogueMessage } from '@/types/game';
-
-const NPC = {
-  id: 'npc_lucia_vargas',
-  name: 'Lucía Vargas',
-  openingLine: 'No vi nada esa noche. Estaba en casa.',
-};
-
-const RESPONSES = ['¿Estabas sola?', '¿A qué hora llegaste a casa?', 'No entiendo.'] as const;
-
-const localNpcReplies: Record<(typeof RESPONSES)[number], { reply: string; feedback: DialogueFeedback; xpType: 'investigation' | 'grammar' | 'vocabulary' }> = {
-  '¿Estabas sola?': {
-    reply: 'Sí... sola. Mi compañera de piso estaba de viaje.',
-    feedback: { isUnderstandable: true, xpAwarded: 8, explanation: 'Buena pregunta para verificar coartadas.' },
-    xpType: 'investigation',
-  },
-  '¿A qué hora llegaste a casa?': {
-    reply: 'Sobre las diez y media... creo.',
-    feedback: { isUnderstandable: true, xpAwarded: 10, explanation: 'Excelente enfoque temporal para detectar contradicciones.' },
-    xpType: 'investigation',
-  },
-  'No entiendo.': {
-    reply: 'Quiero decir que no salí de casa en toda la noche.',
-    feedback: {
-      isUnderstandable: true,
-      xpAwarded: 4,
-      suggestedCorrection: 'No lo entiendo.',
-      explanation: 'Añadir "lo" suena más natural en este contexto.',
-    },
-    xpType: 'grammar',
-  },
-};
+import { NPC_OUTCOMES } from '@/game/content/case001';
 
 export function DialogueOverlay() {
-  const { currentCaseId, dialogueHistory, selectedNpc, startNpcDialogue, addPlayerLine, addNpcLine, addClue, applyFeedback } = useGameStore();
+  const { currentCaseId, dialogueHistory, selectedNpc, npcs, selectNpcById, addPlayerLine, addNpcLine, addClue, completeQuest, applyFeedback } =
+    useGameStore();
   const [freeText, setFreeText] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!selectedNpc) {
-      startNpcDialogue(NPC);
+    if (!selectedNpc && npcs[0]) {
+      selectNpcById(npcs[0].id);
     }
-  }, [selectedNpc, startNpcDialogue]);
+  }, [npcs, selectedNpc, selectNpcById]);
 
   useEffect(() => {
     const onClue = (event: Event) => {
       const customEvent = event as CustomEvent<{ id: string; title: string; description: string }>;
       addClue(customEvent.detail);
-      addNpcLine('¿Encontraste algo? Ese papel no significa nada.');
+      addNpcLine('¿Encontraste algo? Esa pista cambia la línea temporal.');
+      completeQuest('q2');
       applyFeedback(
         { isUnderstandable: true, xpAwarded: 12, explanation: 'Encontraste una pista clave en la escena.' },
         'investigation',
       );
     };
+    const onNpcSelected = (event: Event) => {
+      const customEvent = event as CustomEvent<{ npcId: string }>;
+      selectNpcById(customEvent.detail.npcId);
+    };
 
     window.addEventListener('madrid-noir:clue-found', onClue);
-    return () => window.removeEventListener('madrid-noir:clue-found', onClue);
-  }, [addClue, addNpcLine, applyFeedback]);
+    window.addEventListener('madrid-noir:npc-selected', onNpcSelected);
+    return () => {
+      window.removeEventListener('madrid-noir:clue-found', onClue);
+      window.removeEventListener('madrid-noir:npc-selected', onNpcSelected);
+    };
+  }, [addClue, addNpcLine, applyFeedback, completeQuest, selectNpcById]);
 
   const helper = useMemo(
     () => 'Support hint (EN/UK): Ask precise timeline questions to reveal contradictions. / Підказка: уточнюй час, щоб знайти суперечності.',
     [],
   );
 
-  const handleQuickReply = (text: (typeof RESPONSES)[number]) => {
+  const handleQuickReply = (text: string) => {
+    if (!selectedNpc) return;
     addPlayerLine(text);
-    const outcome = localNpcReplies[text];
+    const outcome = NPC_OUTCOMES[selectedNpc.id]?.[text];
+    if (!outcome) return;
     addNpcLine(outcome.reply);
     applyFeedback(outcome.feedback, outcome.xpType);
+    if (selectedNpc.id === 'npc_lucia_vargas' && text === '¿A qué hora llegaste a casa?') {
+      completeQuest('q1');
+    }
+    if (selectedNpc.id === 'npc_diego_torres' && text === '¿Quién pagó la última ronda?') {
+      completeQuest('q3');
+    }
   };
 
   const submitFreeText = async (event: FormEvent) => {
@@ -85,7 +73,7 @@ export function DialogueOverlay() {
     try {
       const payload: { userText: string; npcId: string; caseId: string; dialogueContext: DialogueMessage[] } = {
         userText,
-        npcId: NPC.id,
+        npcId: selectedNpc?.id ?? 'npc_lucia_vargas',
         caseId: currentCaseId,
         dialogueContext: dialogueHistory,
       };
@@ -107,8 +95,19 @@ export function DialogueOverlay() {
   return (
     <aside className="pointer-events-auto absolute bottom-0 left-0 right-0 m-3 rounded-xl border border-slate-700 bg-noir-900/95 p-4">
       <p className="text-xs uppercase tracking-widest text-amber-300">Interrogation</p>
-      <h2 className="text-lg font-semibold">{NPC.name}</h2>
+      <h2 className="text-lg font-semibold">{selectedNpc?.name ?? 'Selecciona un NPC'}</h2>
       <p className="mt-1 text-sm text-slate-300">{helper}</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {npcs.map((npc) => (
+          <button
+            key={npc.id}
+            onClick={() => selectNpcById(npc.id)}
+            className={`rounded-md border px-2 py-1 text-xs ${selectedNpc?.id === npc.id ? 'border-amber-300 bg-amber-200/10' : 'border-slate-600'}`}
+          >
+            {npc.name}
+          </button>
+        ))}
+      </div>
       <div className="mt-3 max-h-40 space-y-2 overflow-y-auto pr-1 text-sm">
         {dialogueHistory.map((line, idx) => (
           <p key={`${line.timestamp}-${idx}`}>
@@ -119,7 +118,7 @@ export function DialogueOverlay() {
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {RESPONSES.map((option) => (
+        {(selectedNpc?.quickReplies ?? []).map((option) => (
           <button key={option} onClick={() => handleQuickReply(option)} className="rounded-md border border-slate-600 px-3 py-1 text-sm hover:bg-noir-800">
             {option}
           </button>
