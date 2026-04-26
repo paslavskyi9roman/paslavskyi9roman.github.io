@@ -28,8 +28,7 @@ export function DialogueOverlay() {
       }
 
       addClue(customEvent.detail);
-
-      const nextDiscoveredCount = discoveredClues.length + 1;
+      const nextDiscoveredCount = useGameStore.getState().discoveredClues.length;
       addNpcLine('¿Encontraste algo? Esa pista cambia la línea temporal.');
       if (nextDiscoveredCount >= 2) {
         completeQuest('q2');
