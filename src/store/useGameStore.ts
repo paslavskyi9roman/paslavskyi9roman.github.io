@@ -19,6 +19,7 @@ interface GameState {
   selectNpcById: (npcId: string) => void;
   addPlayerLine: (text: string) => void;
   addNpcLine: (text: string) => void;
+  addSystemLine: (text: string) => void;
   addClue: (clue: Clue) => void;
   completeQuest: (questId: string) => void;
   applyFeedback: (feedback: DialogueFeedback, xpType: 'vocabulary' | 'grammar' | 'investigation') => void;
@@ -54,6 +55,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   addNpcLine: (text) =>
     set((state) => ({
       dialogueHistory: [...state.dialogueHistory, { speaker: 'npc', text, timestamp: Date.now() }],
+    })),
+  addSystemLine: (text) =>
+    set((state) => ({
+      dialogueHistory: [...state.dialogueHistory, { speaker: 'system', text, timestamp: Date.now() }],
     })),
   addClue: (clue) =>
     set((state) => {

@@ -6,10 +6,22 @@ import { DialogueFeedback, DialogueMessage } from '@/types/game';
 import { NPC_OUTCOMES } from '@/game/content/case001';
 
 export function DialogueOverlay() {
-  const { currentCaseId, dialogueHistory, selectedNpc, npcs, selectNpcById, addPlayerLine, addNpcLine, addClue, completeQuest, applyFeedback } =
+  const { currentCaseId, dialogueHistory, selectedNpc, npcs, selectNpcById, addPlayerLine, addNpcLine, addSystemLine, addClue, completeQuest, applyFeedback } =
     useGameStore();
   const [freeText, setFreeText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const isValidFeedback = (value: unknown): value is DialogueFeedback => {
+    if (!value || typeof value !== 'object') return false;
+    const candidate = value as Partial<DialogueFeedback>;
+    return (
+      typeof candidate.isUnderstandable === 'boolean' &&
+      typeof candidate.xpAwarded === 'number' &&
+      (candidate.suggestedCorrection === undefined || typeof candidate.suggestedCorrection === 'string') &&
+      (candidate.explanation === undefined || typeof candidate.explanation === 'string')
+    );
+  };
 
   useEffect(() => {
     if (!selectedNpc && npcs[0]) {
@@ -68,6 +80,7 @@ export function DialogueOverlay() {
     const userText = freeText.trim();
     addPlayerLine(userText);
     setFreeText('');
+    setSubmitError(null);
     setLoading(true);
 
     try {
@@ -84,9 +97,25 @@ export function DialogueOverlay() {
         body: JSON.stringify(payload),
       });
 
-      const data = (await response.json()) as { npcReply: string; feedback: DialogueFeedback };
-      addNpcLine(data.npcReply);
-      applyFeedback(data.feedback, 'vocabulary');
+      if (!response.ok) {
+        throw new Error('Dialogue feedback service returned a non-success status.');
+      }
+
+      const data = (await response.json()) as unknown;
+      if (!data || typeof data !== 'object') {
+        throw new Error('Dialogue feedback payload is not an object.');
+      }
+
+      const { npcReply, feedback } = data as { npcReply?: unknown; feedback?: unknown };
+      if (typeof npcReply !== 'string' || !isValidFeedback(feedback)) {
+        throw new Error('Dialogue feedback payload is malformed.');
+      }
+
+      addNpcLine(npcReply);
+      applyFeedback(feedback, 'vocabulary');
+    } catch {
+      addSystemLine('Sistema: Servicio temporalmente no disponible. Inténtalo de nuevo en unos segundos.');
+      setSubmitError('No se pudo procesar tu mensaje. Verifica tu conexión y vuelve a intentar.');
     } finally {
       setLoading(false);
     }
@@ -111,7 +140,9 @@ export function DialogueOverlay() {
       <div className="mt-3 max-h-40 space-y-2 overflow-y-auto pr-1 text-sm">
         {dialogueHistory.map((line, idx) => (
           <p key={`${line.timestamp}-${idx}`}>
-            <span className={line.speaker === 'player' ? 'text-sky-300' : 'text-rose-300'}>{line.speaker === 'player' ? 'Tú' : 'Lucía'}:</span>{' '}
+            <span className={line.speaker === 'player' ? 'text-sky-300' : line.speaker === 'system' ? 'text-amber-300' : 'text-rose-300'}>
+              {line.speaker === 'player' ? 'Tú' : line.speaker === 'system' ? 'Sistema' : 'Lucía'}:
+            </span>{' '}
             {line.text}
           </p>
         ))}
@@ -128,7 +159,10 @@ export function DialogueOverlay() {
       <form onSubmit={submitFreeText} className="mt-3 flex gap-2">
         <input
           value={freeText}
-          onChange={(event) => setFreeText(event.target.value)}
+          onChange={(event) => {
+            setFreeText(event.target.value);
+            if (submitError) setSubmitError(null);
+          }}
           placeholder="Escribe tu respuesta en español..."
           className="w-full rounded-md border border-slate-600 bg-noir-950 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400"
         />
@@ -136,6 +170,7 @@ export function DialogueOverlay() {
           {loading ? '...' : 'Enviar'}
         </button>
       </form>
+      {submitError && <p className="mt-2 text-xs text-amber-300">{submitError}</p>}
     </aside>
   );
 }
