@@ -42,7 +42,7 @@ export function DialogueOverlay() {
   }, [addClue, addNpcLine, applyFeedback, completeQuest, selectNpcById, selectedNpc]);
 
   const helper = useMemo(
-    () => 'Support hint (EN/UK): Ask precise timeline questions to reveal contradictions. / Підказка: уточнюй час, щоб знайти суперечності.',
+    () => 'Nota bilingüe intencional (ES/EN): pregunta por horarios concretos para revelar contradicciones. / Intentional bilingual hint (ES/EN): ask precise timeline questions to reveal contradictions.',
     [],
   );
 
@@ -94,7 +94,7 @@ export function DialogueOverlay() {
 
   return (
     <aside className="pointer-events-auto absolute bottom-0 left-0 right-0 m-3 rounded-xl border border-slate-700 bg-noir-900/95 p-4">
-      <p className="text-xs uppercase tracking-widest text-amber-300">Interrogation</p>
+      <p className="text-xs uppercase tracking-widest text-amber-300">Interrogatorio</p>
       <h2 className="text-lg font-semibold">{selectedNpc?.name ?? 'Selecciona un NPC'}</h2>
       <p className="mt-1 text-sm text-slate-300">{helper}</p>
       <div className="mt-2 flex flex-wrap gap-2">
