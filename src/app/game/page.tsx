@@ -7,7 +7,8 @@ import { ProgressPanel } from '@/components/game/ProgressPanel';
 export default function GamePage() {
   return (
     <section className="space-y-4">
-      <h1 className="text-2xl font-semibold">Case 001: Noche en Lavapiés</h1>
+      <h1 className="text-2xl font-semibold">Case 001: Noche en Lavapiés — Expanded Investigation</h1>
+      <p className="text-sm text-slate-300">3 NPCs, 3 quests, multiple clues, and focused lesson capsules to scale the case horizontally.</p>
       <div className="relative overflow-hidden rounded-xl border border-slate-800 bg-black">
         <GameCanvas />
         <DialogueOverlay />

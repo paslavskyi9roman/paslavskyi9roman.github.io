@@ -3,7 +3,7 @@
 import { useGameStore } from '@/store/useGameStore';
 
 export function ProgressPanel() {
-  const { vocabularyXp, grammarXp, investigationXp, discoveredClues, latestFeedback } = useGameStore();
+  const { vocabularyXp, grammarXp, investigationXp, discoveredClues, latestFeedback, quests, completedQuestIds, lessons, npcs } = useGameStore();
 
   return (
     <aside className="panel p-4">
@@ -14,6 +14,30 @@ export function ProgressPanel() {
         <p className="rounded bg-noir-800 p-2 text-sm">Investigation XP: {investigationXp}</p>
       </div>
       <p className="mt-3 text-sm text-slate-300">Clues found: {discoveredClues.length}</p>
+      <p className="mt-1 text-sm text-slate-300">NPCs unlocked: {npcs.length}</p>
+      <div className="mt-3 rounded border border-slate-700 p-3">
+        <p className="text-sm font-medium">Quest Log</p>
+        <ul className="mt-2 space-y-2 text-sm text-slate-300">
+          {quests.map((quest) => (
+            <li key={quest.id} className="rounded bg-noir-900 px-2 py-1">
+              <span className={completedQuestIds.includes(quest.id) ? 'text-emerald-300' : 'text-amber-200'}>
+                {completedQuestIds.includes(quest.id) ? '✓' : '•'} {quest.title}
+              </span>
+              <p className="text-xs text-slate-400">{quest.objective}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="mt-3 rounded border border-slate-700 p-3">
+        <p className="text-sm font-medium">Lesson Capsules</p>
+        <ul className="mt-2 space-y-1 text-sm text-slate-300">
+          {lessons.map((lesson) => (
+            <li key={lesson.id}>
+              <span className="text-amber-200">{lesson.title}:</span> {lesson.tip}
+            </li>
+          ))}
+        </ul>
+      </div>
       {latestFeedback && (
         <div className="mt-3 rounded border border-slate-700 p-3 text-sm">
           <p>Understandable: {latestFeedback.isUnderstandable ? 'Yes' : 'Not yet'}</p>

@@ -21,6 +21,23 @@ export interface NpcProfile {
   id: string;
   name: string;
   openingLine: string;
+  role: string;
+  lessonFocus: 'vocabulary' | 'grammar' | 'investigation';
+  quickReplies: readonly string[];
+}
+
+export interface Quest {
+  id: string;
+  title: string;
+  objective: string;
+  rewardXp: number;
+}
+
+export interface Lesson {
+  id: string;
+  title: string;
+  tip: string;
+  xpType: 'vocabulary' | 'grammar' | 'investigation';
 }
 
 export interface DialogueContextPayload {

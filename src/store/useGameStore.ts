@@ -1,9 +1,14 @@
 import { create } from 'zustand';
-import { Clue, DialogueFeedback, DialogueMessage, NpcProfile } from '@/types/game';
+import { Clue, DialogueFeedback, DialogueMessage, Lesson, NpcProfile, Quest } from '@/types/game';
+import { CASE_001_LESSONS, CASE_001_NPCS, CASE_001_QUESTS } from '@/game/content/case001';
 
 interface GameState {
   currentCaseId: string;
+  npcs: NpcProfile[];
+  quests: Quest[];
+  lessons: Lesson[];
   selectedNpc: NpcProfile | null;
+  completedQuestIds: string[];
   dialogueHistory: DialogueMessage[];
   discoveredClues: Clue[];
   vocabularyXp: number;
@@ -11,15 +16,21 @@ interface GameState {
   investigationXp: number;
   latestFeedback: DialogueFeedback | null;
   startNpcDialogue: (npc: NpcProfile) => void;
+  selectNpcById: (npcId: string) => void;
   addPlayerLine: (text: string) => void;
   addNpcLine: (text: string) => void;
   addClue: (clue: Clue) => void;
+  completeQuest: (questId: string) => void;
   applyFeedback: (feedback: DialogueFeedback, xpType: 'vocabulary' | 'grammar' | 'investigation') => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
   currentCaseId: 'case_001',
-  selectedNpc: null,
+  npcs: CASE_001_NPCS,
+  quests: CASE_001_QUESTS,
+  lessons: CASE_001_LESSONS,
+  selectedNpc: CASE_001_NPCS[0],
+  completedQuestIds: [],
   dialogueHistory: [],
   discoveredClues: [],
   vocabularyXp: 0,
@@ -31,6 +42,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       selectedNpc: npc,
       dialogueHistory: [{ speaker: 'npc', text: npc.openingLine, timestamp: Date.now() }],
     }),
+  selectNpcById: (npcId) => {
+    const npc = get().npcs.find((profile) => profile.id === npcId);
+    if (!npc) return;
+    get().startNpcDialogue(npc);
+  },
   addPlayerLine: (text) =>
     set((state) => ({
       dialogueHistory: [...state.dialogueHistory, { speaker: 'player', text, timestamp: Date.now() }],
@@ -45,6 +61,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         return state;
       }
       return { discoveredClues: [...state.discoveredClues, clue] };
+    }),
+  completeQuest: (questId) =>
+    set((state) => {
+      if (state.completedQuestIds.includes(questId)) return state;
+      return { completedQuestIds: [...state.completedQuestIds, questId] };
     }),
   applyFeedback: (feedback, xpType) => {
     const state = get();
