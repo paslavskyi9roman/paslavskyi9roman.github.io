@@ -20,9 +20,20 @@ export function DialogueOverlay() {
   useEffect(() => {
     const onClue = (event: Event) => {
       const customEvent = event as CustomEvent<{ id: string; title: string; description: string }>;
+
+      const { discoveredClues } = useGameStore.getState();
+      const clueAlreadyDiscovered = discoveredClues.some((clue) => clue.id === customEvent.detail.id);
+      if (clueAlreadyDiscovered) {
+        return;
+      }
+
       addClue(customEvent.detail);
+
+      const nextDiscoveredCount = discoveredClues.length + 1;
       addNpcLine('¿Encontraste algo? Esa pista cambia la línea temporal.');
-      completeQuest('q2');
+      if (nextDiscoveredCount >= 2) {
+        completeQuest('q2');
+      }
       applyFeedback(
         { isUnderstandable: true, xpAwarded: 12, explanation: 'Encontraste una pista clave en la escena.' },
         'investigation',

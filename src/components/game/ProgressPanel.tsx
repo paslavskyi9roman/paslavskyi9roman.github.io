@@ -4,6 +4,8 @@ import { useGameStore } from '@/store/useGameStore';
 
 export function ProgressPanel() {
   const { vocabularyXp, grammarXp, investigationXp, discoveredClues, latestFeedback, quests, completedQuestIds, lessons, npcs } = useGameStore();
+  const requiredCluesForRouteQuest = 2;
+  const routeQuestProgress = Math.min(discoveredClues.length, requiredCluesForRouteQuest);
 
   return (
     <aside className="panel p-4">
@@ -13,7 +15,9 @@ export function ProgressPanel() {
         <p className="rounded bg-noir-800 p-2 text-sm">Grammar XP: {grammarXp}</p>
         <p className="rounded bg-noir-800 p-2 text-sm">Investigation XP: {investigationXp}</p>
       </div>
-      <p className="mt-3 text-sm text-slate-300">Clues found: {discoveredClues.length}</p>
+      <p className="mt-3 text-sm text-slate-300">
+        Clues found: {discoveredClues.length} ({routeQuestProgress}/{requiredCluesForRouteQuest} for “Reconstruye la ruta”)
+      </p>
       <p className="mt-1 text-sm text-slate-300">NPCs unlocked: {npcs.length}</p>
       <div className="mt-3 rounded border border-slate-700 p-3">
         <p className="text-sm font-medium">Quest Log</p>
