@@ -67,13 +67,21 @@ export const CASE_001_NPCS: NpcProfile[] = [
 export const CASE_001_QUESTS: Quest[] = [
   {
     id: 'q1',
+    locationId: 'bar_interior',
     title: 'Verifica la coartada',
     objective: 'Habla con Lucía y detecta una contradicción horaria.',
     rewardXp: 30,
   },
-  { id: 'q2', title: 'Reconstruye la ruta', objective: 'Encuentra 2 pistas físicas en la escena.', rewardXp: 35 },
+  {
+    id: 'q2',
+    locationId: 'bar_interior',
+    title: 'Reconstruye la ruta',
+    objective: 'Encuentra 2 pistas físicas en la escena.',
+    rewardXp: 35,
+  },
   {
     id: 'q3',
+    locationId: 'bar_interior',
     title: 'Cadena de testimonios',
     objective: 'Interroga al camarero y cruza su declaración con la de Lucía.',
     rewardXp: 40,

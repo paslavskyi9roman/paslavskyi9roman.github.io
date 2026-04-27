@@ -309,7 +309,8 @@ export function InterrogationPanel() {
                   key={q}
                   type="button"
                   onClick={() => handleQuickReply(q)}
-                  title={qEn}
+                  aria-label={qEn ? `${q} (English: ${qEn})` : q}
+                  className={qEn ? 'tooltip-host' : undefined}
                   style={{
                     fontFamily: 'var(--body)',
                     fontSize: 13,
@@ -321,7 +322,7 @@ export function InterrogationPanel() {
                     fontStyle: 'italic',
                   }}
                 >
-                  «{q}»
+                  «{q}»{qEn && <span className="es-tooltip">{qEn}</span>}
                 </button>
               );
             })}

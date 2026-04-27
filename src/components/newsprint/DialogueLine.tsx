@@ -50,15 +50,18 @@ export function DialogueLine({ speaker, text, en, role }: DialogueLineProps) {
       >
         — {speaker} {isPlayer ? '(detective)' : ''}
       </div>
-      <p className="body-serif" style={{ fontSize: 15, color: 'var(--ink)', margin: 0 }}>
-        {en ? (
-          <span className="es" tabIndex={0}>
-            «{text}»<span className="es-tooltip">{en}</span>
-          </span>
-        ) : (
-          <>«{text}»</>
-        )}
-      </p>
+      {en ? (
+        <div className="dialogue-bilingual" tabIndex={0} aria-label={`English translation: ${en}`}>
+          <p className="body-serif" style={{ fontSize: 15, color: 'var(--ink)', margin: 0 }}>
+            «{text}»
+          </p>
+          <span className="dialogue-en">{en}</span>
+        </div>
+      ) : (
+        <p className="body-serif" style={{ fontSize: 15, color: 'var(--ink)', margin: 0 }}>
+          «{text}»
+        </p>
+      )}
     </div>
   );
 }

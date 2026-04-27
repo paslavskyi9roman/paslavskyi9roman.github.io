@@ -357,8 +357,12 @@ body {
   padding: 5px 10px;
   font-family: var(--sans);
   font-size: 11px;
+  line-height: 1.4;
   letter-spacing: 0.06em;
-  white-space: nowrap;
+  white-space: normal;
+  width: max-content;
+  max-width: min(420px, 90vw);
+  text-align: center;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.12s;
@@ -366,6 +370,16 @@ body {
 }
 .es:hover .es-tooltip,
 .es:focus-visible .es-tooltip {
+  opacity: 1;
+}
+
+/* Generic tooltip host: any element that needs an .es-tooltip child without
+   the dotted underline / cursor:help that .es applies. */
+.tooltip-host {
+  position: relative;
+}
+.tooltip-host:hover > .es-tooltip,
+.tooltip-host:focus-visible > .es-tooltip {
   opacity: 1;
 }
 .es-tooltip::after {
@@ -376,6 +390,44 @@ body {
   margin-left: -5px;
   border: 5px solid transparent;
   border-top-color: var(--ink);
+}
+
+/* Bilingual dialogue: ES visible, EN revealed below on hover/focus. */
+.dialogue-bilingual {
+  display: block;
+  border-bottom: 1px dotted var(--red);
+  cursor: help;
+  outline: none;
+}
+.dialogue-bilingual:hover {
+  background: rgba(164, 24, 24, 0.06);
+}
+.dialogue-bilingual .dialogue-en {
+  display: block;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--ink-faded);
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  font-style: italic;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 0.2s ease,
+    opacity 0.15s ease,
+    padding-top 0.2s ease,
+    margin-top 0.2s ease;
+  /* hide the fading divider when collapsed */
+  border-top-color: transparent;
+}
+.dialogue-bilingual:hover .dialogue-en,
+.dialogue-bilingual:focus-visible .dialogue-en {
+  max-height: 400px;
+  opacity: 1;
+  border-top-color: var(--ink-faded);
 }
 
 /* Photo caption */

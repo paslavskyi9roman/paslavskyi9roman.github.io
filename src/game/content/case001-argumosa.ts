@@ -60,18 +60,21 @@ export const ARGUMOSA_NPC_PROFILES: Record<string, Pick<NpcProfile, 'openingLine
 export const ARGUMOSA_QUESTS: Quest[] = [
   {
     id: 'q6',
+    locationId: 'argumosa_kiosk',
     title: 'Localiza a la testigo',
     objective: 'Encuentra al menos 2 indicios en el kiosko de Argumosa.',
     rewardXp: 35,
   },
   {
     id: 'q7',
+    locationId: 'argumosa_kiosk',
     title: 'Toma su declaración',
     objective: 'Registra al menos una declaración de Mercedes Quintero.',
     rewardXp: 35,
   },
   {
     id: 'q8',
+    locationId: 'argumosa_kiosk',
     title: 'Cierra el círculo',
     objective: 'Provoca al menos una nueva contradicción contra Lucía aquí.',
     rewardXp: 50,
