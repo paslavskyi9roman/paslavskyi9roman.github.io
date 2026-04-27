@@ -1,6 +1,6 @@
 import type { BilingualText } from '@/game/content/case001-bilingual';
 
-export type LocationId = 'bar_interior' | 'lucia_apartment';
+export type LocationId = 'bar_interior' | 'lucia_apartment' | 'argumosa_kiosk';
 
 export interface LocationDef {
   id: LocationId;
@@ -44,11 +44,26 @@ export const LOCATIONS: Record<LocationId, LocationDef> = {
       en: "Lucía's Apartment · 27 Mesón de Paredes",
     },
   },
+  argumosa_kiosk: {
+    id: 'argumosa_kiosk',
+    name: { es: 'Kiosko de Argumosa', en: 'Argumosa Newsstand' },
+    address: { es: 'Calle Argumosa, junto al Metro de Lavapiés', en: 'Calle Argumosa, beside Lavapiés Metro' },
+    background: '/assets/scenes/bg_metro_station.png',
+    caption: {
+      es: 'FIG. 3 — Kiosko y cabina telefónica de Calle Argumosa, donde la llamada anónima fue registrada a las 00:07.',
+      en: 'FIG. 3 — Newsstand and public phone box on Calle Argumosa, where the anonymous call was logged at 00:07.',
+    },
+    kicker: { es: 'Tercer Escenario', en: 'Third Scene' },
+    byline: {
+      es: 'Boca del Metro · Calle Argumosa',
+      en: 'Metro Entrance · Calle Argumosa',
+    },
+  },
 };
 
 export const DEFAULT_LOCATION_ID: LocationId = 'bar_interior';
 
-export const LOCATION_ORDER: LocationId[] = ['bar_interior', 'lucia_apartment'];
+export const LOCATION_ORDER: LocationId[] = ['bar_interior', 'lucia_apartment', 'argumosa_kiosk'];
 
 /**
  * Quest IDs that must be completed before each location unlocks. The first
@@ -57,6 +72,7 @@ export const LOCATION_ORDER: LocationId[] = ['bar_interior', 'lucia_apartment'];
 export const LOCATION_REQUIRED_QUESTS: Record<LocationId, string[]> = {
   bar_interior: [],
   lucia_apartment: ['q1', 'q2', 'q3'],
+  argumosa_kiosk: ['q4', 'q5'],
 };
 
 export const isLocationUnlocked = (locationId: LocationId, completedQuestIds: string[]): boolean => {

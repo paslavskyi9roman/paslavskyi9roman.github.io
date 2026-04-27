@@ -95,6 +95,15 @@ export const CASE_001_BILINGUAL_NPCS: Record<string, BilingualNpc> = {
     taglineEn: 'Veteran. Your liaison at HQ.',
     portrait: '/assets/characters/npc_inspectora_ruiz.png',
   },
+  npc_mercedes_quintero: {
+    id: 'npc_mercedes_quintero',
+    roleEn: "Ramón's sister · newspaper vendor",
+    openingEn:
+      "Detective… I was expecting you. I knew sooner or later you'd trace the phone. I just… I wanted to do what my brother would have done. Make the call. Say what I saw. Even with my hands shaking.",
+    tagline: 'Hermana de Ramón. La voz de la cabina.',
+    taglineEn: "Ramón's sister. The voice from the phone box.",
+    portrait: '/assets/characters/npc_mercedes_quintero.png',
+  },
 };
 
 /** Lookup by NPC + Spanish quick-reply text → English translation + correction. */

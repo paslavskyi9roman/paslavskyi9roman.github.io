@@ -24,6 +24,7 @@ import {
   APARTMENT_NPC_PROFILES,
   APARTMENT_QUESTS,
 } from '@/game/content/case001-apartment';
+import { ARGUMOSA_CLUE_CONTRADICTIONS, ARGUMOSA_NPC_PROFILES, ARGUMOSA_QUESTS } from '@/game/content/case001-argumosa';
 import {
   DEFAULT_LOCATION_ID,
   LOCATIONS,
@@ -77,11 +78,12 @@ const ACCUSATION_SOLVED_XP = 25;
 const ACCUSATION_FAILED_XP = 5;
 const REQUIRED_CLUES_FOR_ACCUSATION = 3;
 
-const ALL_QUESTS: Quest[] = [...CASE_001_QUESTS, ...APARTMENT_QUESTS];
+const ALL_QUESTS: Quest[] = [...CASE_001_QUESTS, ...APARTMENT_QUESTS, ...ARGUMOSA_QUESTS];
 
 const ALL_CLUE_CONTRADICTIONS: Record<string, string[]> = {
   ...CASE_001_CLUE_CONTRADICTIONS,
   ...APARTMENT_CLUE_CONTRADICTIONS,
+  ...ARGUMOSA_CLUE_CONTRADICTIONS,
 };
 
 /**
@@ -92,6 +94,7 @@ const ALL_CLUE_CONTRADICTIONS: Record<string, string[]> = {
 const LOCATION_NPC_IDS: Record<LocationId, string[]> = {
   bar_interior: ['npc_lucia_vargas', 'npc_diego_torres', 'npc_inspectora_ruiz'],
   lucia_apartment: ['npc_lucia_vargas', 'npc_inspectora_ruiz'],
+  argumosa_kiosk: ['npc_mercedes_quintero', 'npc_inspectora_ruiz'],
 };
 
 const buildNpcsForLocation = (locationId: LocationId): NpcProfile[] => {
@@ -102,6 +105,12 @@ const buildNpcsForLocation = (locationId: LocationId): NpcProfile[] => {
     .map((base) => {
       if (locationId === 'lucia_apartment') {
         const override = APARTMENT_NPC_PROFILES[base.id];
+        if (override) {
+          return { ...base, openingLine: override.openingLine, quickReplies: override.quickReplies };
+        }
+      }
+      if (locationId === 'argumosa_kiosk') {
+        const override = ARGUMOSA_NPC_PROFILES[base.id];
         if (override) {
           return { ...base, openingLine: override.openingLine, quickReplies: override.quickReplies };
         }

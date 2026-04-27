@@ -234,4 +234,50 @@ describe('useGameStore', () => {
     const congrats = useGameStore.getState().dialogueHistory.filter((line) => line.text.includes('¡Enhorabuena!'));
     expect(congrats).toHaveLength(1);
   });
+
+  it('locks the third location until both apartment quests are complete', () => {
+    const { setLocation, completeQuest } = useGameStore.getState();
+    completeQuest('q1');
+    completeQuest('q2');
+    completeQuest('q3');
+    setLocation('argumosa_kiosk');
+    expect(useGameStore.getState().currentLocationId).toBe('bar_interior');
+
+    completeQuest('q4');
+    setLocation('argumosa_kiosk');
+    expect(useGameStore.getState().currentLocationId).toBe('bar_interior');
+
+    completeQuest('q5');
+    setLocation('argumosa_kiosk');
+    expect(useGameStore.getState().currentLocationId).toBe('argumosa_kiosk');
+  });
+
+  it('emits a congratulations system line when Argumosa unlocks', () => {
+    const { completeQuest, setLocation } = useGameStore.getState();
+    completeQuest('q1');
+    completeQuest('q2');
+    completeQuest('q3');
+    setLocation('lucia_apartment');
+    completeQuest('q4');
+    expect(useGameStore.getState().dialogueHistory.some((line) => line.text.includes('Argumosa'))).toBe(false);
+
+    completeQuest('q5');
+    const argumosaCongrats = useGameStore
+      .getState()
+      .dialogueHistory.filter((line) => line.text.includes('¡Enhorabuena!') && line.text.includes('Argumosa'));
+    expect(argumosaCongrats).toHaveLength(1);
+    expect(argumosaCongrats[0]?.speaker).toBe('system');
+  });
+
+  it('swaps the NPC roster to Mercedes + Inspectora at Argumosa', () => {
+    const { setLocation, completeQuest } = useGameStore.getState();
+    completeQuest('q1');
+    completeQuest('q2');
+    completeQuest('q3');
+    completeQuest('q4');
+    completeQuest('q5');
+    setLocation('argumosa_kiosk');
+    const npcIds = useGameStore.getState().npcs.map((n) => n.id);
+    expect(npcIds).toEqual(['npc_mercedes_quintero', 'npc_inspectora_ruiz']);
+  });
 });

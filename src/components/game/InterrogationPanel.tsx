@@ -6,6 +6,7 @@ import { NewsprintPhoto } from '@/components/newsprint/NewsprintPhoto';
 import {
   ALL_BILINGUAL_REPLIES,
   ALL_NPC_OUTCOMES,
+  ALL_QUICK_REPLY_CLUE_GATES,
   APARTMENT_STATEMENT_IDS,
   getBilingualNpc,
 } from '@/game/content/case001-merged';
@@ -18,6 +19,7 @@ export function InterrogationPanel() {
     currentCaseId,
     currentLocationId,
     dialogueHistory,
+    discoveredClues,
     selectedNpc,
     npcs,
     usedQuickReplies,
@@ -45,10 +47,18 @@ export function InterrogationPanel() {
     return new Set(usedQuickReplies[selectedNpc.id] ?? []);
   }, [usedQuickReplies, selectedNpc]);
 
+  const discoveredClueIds = useMemo(() => new Set(discoveredClues.map((c) => c.id)), [discoveredClues]);
+
   const availableQuickReplies = useMemo(() => {
     if (!selectedNpc) return [] as readonly string[];
-    return selectedNpc.quickReplies.filter((q) => !usedReplies.has(q));
-  }, [selectedNpc, usedReplies]);
+    const gates = ALL_QUICK_REPLY_CLUE_GATES[selectedNpc.id] ?? {};
+    return selectedNpc.quickReplies.filter((q) => {
+      if (usedReplies.has(q)) return false;
+      const requiredClue = gates[q];
+      if (requiredClue && !discoveredClueIds.has(requiredClue)) return false;
+      return true;
+    });
+  }, [selectedNpc, usedReplies, discoveredClueIds]);
 
   const visibleLines = useMemo(() => {
     if (!selectedNpc) return [] as DialogueMessage[];
@@ -91,6 +101,12 @@ export function InterrogationPanel() {
       if (contradictionsAfter > contradictionsBefore) {
         completeQuest('q5');
       }
+    }
+
+    // q7: any statement Mercedes provides at the Argumosa kiosk counts as
+    // taking her testimony on record.
+    if (currentLocationId === 'argumosa_kiosk' && selectedNpc.id === 'npc_mercedes_quintero' && outcome.statement) {
+      completeQuest('q7');
     }
   };
 
