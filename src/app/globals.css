@@ -1,6 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-noir-950: #080a0f;
+  --color-noir-900: #0f1624;
+  --color-noir-800: #172033;
+}
 
 :root {
   color-scheme: dark;

@@ -18,7 +18,7 @@ interface GameState {
   startNpcDialogue: (npc: NpcProfile) => void;
   selectNpcById: (npcId: string) => void;
   addPlayerLine: (text: string) => void;
-  addNpcLine: (text: string) => void;
+  addNpcLine: (text: string, npc?: Pick<NpcProfile, 'id' | 'name'>) => void;
   addSystemLine: (text: string) => void;
   addClue: (clue: Clue) => void;
   completeQuest: (questId: string) => void;
