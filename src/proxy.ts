@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { defaultLocale, isAppLocale } from '@/i18n/config';
 
 const PUBLIC_FILE = /\.(.*)$/;
@@ -16,7 +16,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const pathLocale = pathname.split('/')[1];
+  const pathLocale = pathname.split('/')[1] ?? '';
   if (isAppLocale(pathLocale)) {
     return NextResponse.next();
   }
