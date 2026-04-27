@@ -1,16 +1,15 @@
+import 'server-only';
 import { NextResponse } from 'next/server';
-import { DialogueContextPayload, DialogueFeedback } from '@/types/game';
+import type { DialogueFeedback } from '@/types/game';
+import { DialogueRequestSchema } from '@/lib/dialogue/schema';
+import { evaluateDialogueWithAnthropic } from '@/lib/dialogue/anthropic';
+import { clientIdentifier, dialogueRateLimit } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
-const errorResponse = (error: string, code: string, status: number) =>
-  NextResponse.json(
-    {
-      error,
-      code,
-    },
-    { status },
-  );
+const errorResponse = (error: string, code: string, status: number, extra?: Record<string, unknown>) =>
+  NextResponse.json({ error, code, ...extra }, { status });
 
-const deterministicFeedback = (userText: string): { npcReply: string; feedback: DialogueFeedback } => {
+export const deterministicFeedback = (userText: string): { npcReply: string; feedback: DialogueFeedback } => {
   const normalized = userText.toLowerCase();
 
   if (normalized.includes('hora')) {
@@ -47,32 +46,40 @@ const deterministicFeedback = (userText: string): { npcReply: string; feedback: 
 };
 
 export async function POST(request: Request) {
-  let body: DialogueContextPayload;
+  let raw: unknown;
   try {
-    body = (await request.json()) as DialogueContextPayload;
+    raw = await request.json();
   } catch {
     return errorResponse('Invalid JSON body', 'INVALID_JSON', 400);
   }
 
-  if (!body?.userText || !body?.npcId || !body?.caseId) {
-    return errorResponse('Missing required fields', 'INVALID_REQUEST', 400);
+  const parsed = DialogueRequestSchema.safeParse(raw);
+  if (!parsed.success) {
+    return errorResponse('Request failed validation', 'INVALID_REQUEST', 400, {
+      issues: parsed.error.issues.map((issue) => ({ path: issue.path, message: issue.message })),
+    });
   }
 
+  const identifier = clientIdentifier(request);
+  const limit = await dialogueRateLimit(identifier);
+  if (!limit.success) {
+    return errorResponse('Rate limit exceeded', 'RATE_LIMITED', 429, {
+      retryAfterMs: Math.max(0, limit.reset - Date.now()),
+    });
+  }
+
+  const body = parsed.data;
   const aiApiKey = process.env.AI_API_KEY;
 
   if (!aiApiKey) {
     return NextResponse.json(deterministicFeedback(body.userText));
   }
 
-  // Placeholder when an OpenAI-compatible provider key is available.
-  // Keep server-side only; do not expose provider credentials to the browser.
-  // NEEDS VERIFICATION: exact SDK/client wiring based on selected provider package.
-  return NextResponse.json({
-    npcReply: 'Implementación AI pendiente.',
-    feedback: {
-      isUnderstandable: true,
-      xpAwarded: 0,
-      explanation: 'AI provider key detected; endpoint integration still pending implementation.',
-    },
-  });
+  try {
+    const response = await evaluateDialogueWithAnthropic(body);
+    return NextResponse.json(response);
+  } catch (err) {
+    logger.error({ err, npcId: body.npcId, caseId: body.caseId }, 'AI dialogue evaluation failed');
+    return NextResponse.json(deterministicFeedback(body.userText));
+  }
 }

@@ -7,7 +7,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <section className="space-y-6">
       <div className="panel p-8">
-        <p className="text-xs uppercase tracking-[0.25em] text-amber-300">{isSpanish ? 'RPG detectivesco de español' : 'Spanish Detective RPG'}</p>
+        <p className="text-xs uppercase tracking-[0.25em] text-amber-300">
+          {isSpanish ? 'RPG detectivesco de español' : 'Spanish Detective RPG'}
+        </p>
         <h1 className="mt-2 text-4xl font-bold">Madrid Noir</h1>
         <p className="mt-4 max-w-2xl text-slate-300">
           {isSpanish

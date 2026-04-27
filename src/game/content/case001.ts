@@ -1,4 +1,4 @@
-import { DialogueFeedback, Lesson, NpcProfile, Quest } from '@/types/game';
+import { type DialogueFeedback, type Lesson, type NpcProfile, type Quest } from '@/types/game';
 
 type ReplyOutcome = {
   reply: string;
@@ -34,17 +34,42 @@ export const CASE_001_NPCS: NpcProfile[] = [
 ];
 
 export const CASE_001_QUESTS: Quest[] = [
-  { id: 'q1', title: 'Verifica la coartada', objective: 'Habla con Lucía y detecta una contradicción horaria.', rewardXp: 30 },
+  {
+    id: 'q1',
+    title: 'Verifica la coartada',
+    objective: 'Habla con Lucía y detecta una contradicción horaria.',
+    rewardXp: 30,
+  },
   { id: 'q2', title: 'Reconstruye la ruta', objective: 'Encuentra 2 pistas físicas en la escena.', rewardXp: 35 },
-  { id: 'q3', title: 'Cadena de testimonios', objective: 'Interroga al camarero y cruza su declaración con la de Lucía.', rewardXp: 40 },
+  {
+    id: 'q3',
+    title: 'Cadena de testimonios',
+    objective: 'Interroga al camarero y cruza su declaración con la de Lucía.',
+    rewardXp: 40,
+  },
 ];
 
 export const CASE_001_ROUTE_QUEST_REQUIRED_CLUES = 2;
 
 export const CASE_001_LESSONS: Lesson[] = [
-  { id: 'l1', title: 'Preguntas de tiempo', tip: 'Usa “¿A qué hora...?” para detectar incoherencias.', xpType: 'investigation' },
-  { id: 'l2', title: 'Claridad natural', tip: '“No lo entiendo” suena más natural que “No entiendo”.', xpType: 'grammar' },
-  { id: 'l3', title: 'Vocabulario policial', tip: 'Practica: testigo, coartada, pista, declaración.', xpType: 'vocabulary' },
+  {
+    id: 'l1',
+    title: 'Preguntas de tiempo',
+    tip: 'Usa “¿A qué hora...?” para detectar incoherencias.',
+    xpType: 'investigation',
+  },
+  {
+    id: 'l2',
+    title: 'Claridad natural',
+    tip: '“No lo entiendo” suena más natural que “No entiendo”.',
+    xpType: 'grammar',
+  },
+  {
+    id: 'l3',
+    title: 'Vocabulario policial',
+    tip: 'Practica: testigo, coartada, pista, declaración.',
+    xpType: 'vocabulary',
+  },
 ];
 
 export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
@@ -56,7 +81,11 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
     },
     '¿A qué hora llegaste a casa?': {
       reply: 'Sobre las diez y media... creo.',
-      feedback: { isUnderstandable: true, xpAwarded: 10, explanation: 'Excelente enfoque temporal para detectar contradicciones.' },
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 10,
+        explanation: 'Excelente enfoque temporal para detectar contradicciones.',
+      },
       xpType: 'investigation',
     },
     'No entiendo.': {
@@ -78,7 +107,11 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
     },
     '¿Quién pagó la última ronda?': {
       reply: 'Un hombre con abrigo gris. No era cliente habitual.',
-      feedback: { isUnderstandable: true, xpAwarded: 11, explanation: 'Excelente: detalles de transacción aportan nueva pista.' },
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 11,
+        explanation: 'Excelente: detalles de transacción aportan nueva pista.',
+      },
       xpType: 'vocabulary',
     },
     'Repítelo más despacio.': {
@@ -100,7 +133,11 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
     },
     '¿Puedes corregir mi frase?': {
       reply: 'Sí: usa verbos en pasado para hechos cerrados.',
-      feedback: { isUnderstandable: true, xpAwarded: 8, explanation: 'Solicitar corrección activa acelera tu progreso.' },
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 8,
+        explanation: 'Solicitar corrección activa acelera tu progreso.',
+      },
       xpType: 'vocabulary',
     },
   },

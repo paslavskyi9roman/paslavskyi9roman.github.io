@@ -1,27 +1,28 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '@/store/useGameStore';
-import { DialogueFeedback, DialogueMessage } from '@/types/game';
+import { type DialogueMessage } from '@/types/game';
+import { DialogueResponseSchema } from '@/lib/dialogue/schema';
 import { CASE_001_ROUTE_QUEST_REQUIRED_CLUES, NPC_OUTCOMES } from '@/game/content/case001';
 
 export function DialogueOverlay() {
-  const { currentCaseId, dialogueHistory, selectedNpc, npcs, selectNpcById, addPlayerLine, addNpcLine, addSystemLine, addClue, completeQuest, applyFeedback } =
-    useGameStore();
+  const {
+    currentCaseId,
+    dialogueHistory,
+    selectedNpc,
+    npcs,
+    selectNpcById,
+    addPlayerLine,
+    addNpcLine,
+    addSystemLine,
+    addClue,
+    completeQuest,
+    applyFeedback,
+  } = useGameStore();
   const [freeText, setFreeText] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const isValidFeedback = (value: unknown): value is DialogueFeedback => {
-    if (!value || typeof value !== 'object') return false;
-    const candidate = value as Partial<DialogueFeedback>;
-    return (
-      typeof candidate.isUnderstandable === 'boolean' &&
-      typeof candidate.xpAwarded === 'number' &&
-      (candidate.suggestedCorrection === undefined || typeof candidate.suggestedCorrection === 'string') &&
-      (candidate.explanation === undefined || typeof candidate.explanation === 'string')
-    );
-  };
 
   useEffect(() => {
     if (!selectedNpc && npcs[0]) {
@@ -64,7 +65,8 @@ export function DialogueOverlay() {
   }, [addClue, addNpcLine, applyFeedback, completeQuest, selectNpcById, selectedNpc]);
 
   const helper = useMemo(
-    () => 'Nota bilingüe intencional (ES/EN): pregunta por horarios concretos para revelar contradicciones. / Intentional bilingual hint (ES/EN): ask precise timeline questions to reveal contradictions.',
+    () =>
+      'Nota bilingüe intencional (ES/EN): pregunta por horarios concretos para revelar contradicciones. / Intentional bilingual hint (ES/EN): ask precise timeline questions to reveal contradictions.',
     [],
   );
 
@@ -112,17 +114,13 @@ export function DialogueOverlay() {
       }
 
       const data = (await response.json()) as unknown;
-      if (!data || typeof data !== 'object') {
-        throw new Error('Dialogue feedback payload is not an object.');
-      }
-
-      const { npcReply, feedback } = data as { npcReply?: unknown; feedback?: unknown };
-      if (typeof npcReply !== 'string' || !isValidFeedback(feedback)) {
+      const validated = DialogueResponseSchema.safeParse(data);
+      if (!validated.success) {
         throw new Error('Dialogue feedback payload is malformed.');
       }
 
-      addNpcLine(npcReply);
-      applyFeedback(feedback, 'vocabulary');
+      addNpcLine(validated.data.npcReply, selectedNpc ? { id: selectedNpc.id, name: selectedNpc.name } : undefined);
+      applyFeedback(validated.data.feedback, 'vocabulary');
     } catch {
       addSystemLine('Sistema: Servicio temporalmente no disponible. Inténtalo de nuevo en unos segundos.');
       setSubmitError('No se pudo procesar tu mensaje. Verifica tu conexión y vuelve a intentar.');
@@ -150,8 +148,16 @@ export function DialogueOverlay() {
       <div className="mt-3 max-h-40 space-y-2 overflow-y-auto pr-1 text-sm">
         {dialogueHistory.map((line, idx) => (
           <p key={`${line.timestamp}-${idx}`}>
-            <span className={line.speaker === 'player' ? 'text-sky-300' : line.speaker === 'system' ? 'text-amber-300' : 'text-rose-300'}>
-              {line.speaker === 'player' ? 'Tú' : line.speaker === 'system' ? 'Sistema' : 'Lucía'}:
+            <span
+              className={
+                line.speaker === 'player'
+                  ? 'text-sky-300'
+                  : line.speaker === 'system'
+                    ? 'text-amber-300'
+                    : 'text-rose-300'
+              }
+            >
+              {line.speaker === 'player' ? 'Tú' : line.speaker === 'system' ? 'Sistema' : (line.npcName ?? 'NPC')}:
             </span>{' '}
             {line.text}
           </p>
@@ -160,7 +166,11 @@ export function DialogueOverlay() {
 
       <div className="mt-3 flex flex-wrap gap-2">
         {(selectedNpc?.quickReplies ?? []).map((option) => (
-          <button key={option} onClick={() => handleQuickReply(option)} className="rounded-md border border-slate-600 px-3 py-1 text-sm hover:bg-noir-800">
+          <button
+            key={option}
+            onClick={() => handleQuickReply(option)}
+            className="rounded-md border border-slate-600 px-3 py-1 text-sm hover:bg-noir-800"
+          >
             {option}
           </button>
         ))}
@@ -176,7 +186,10 @@ export function DialogueOverlay() {
           placeholder="Escribe tu respuesta en español..."
           className="w-full rounded-md border border-slate-600 bg-noir-950 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-amber-400"
         />
-        <button disabled={loading} className="rounded-md bg-amber-400 px-4 py-2 text-sm font-medium text-noir-950 disabled:opacity-60">
+        <button
+          disabled={loading}
+          className="rounded-md bg-amber-400 px-4 py-2 text-sm font-medium text-noir-950 disabled:opacity-60"
+        >
           {loading ? '...' : 'Enviar'}
         </button>
       </form>
