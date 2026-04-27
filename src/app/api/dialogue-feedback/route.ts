@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server';
 import { DialogueContextPayload, DialogueFeedback } from '@/types/game';
 
+const errorResponse = (error: string, code: string, status: number) =>
+  NextResponse.json(
+    {
+      error,
+      code,
+    },
+    { status },
+  );
+
 const deterministicFeedback = (userText: string): { npcReply: string; feedback: DialogueFeedback } => {
   const normalized = userText.toLowerCase();
 
@@ -38,10 +47,15 @@ const deterministicFeedback = (userText: string): { npcReply: string; feedback: 
 };
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as DialogueContextPayload;
+  let body: DialogueContextPayload;
+  try {
+    body = (await request.json()) as DialogueContextPayload;
+  } catch {
+    return errorResponse('Invalid JSON body', 'INVALID_JSON', 400);
+  }
 
   if (!body?.userText || !body?.npcId || !body?.caseId) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    return errorResponse('Missing required fields', 'INVALID_REQUEST', 400);
   }
 
   const aiApiKey = process.env.AI_API_KEY;
