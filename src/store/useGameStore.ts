@@ -24,7 +24,14 @@ import {
   APARTMENT_NPC_PROFILES,
   APARTMENT_QUESTS,
 } from '@/game/content/case001-apartment';
-import { DEFAULT_LOCATION_ID, type LocationId } from '@/game/content/locations';
+import {
+  DEFAULT_LOCATION_ID,
+  LOCATIONS,
+  LOCATION_ORDER,
+  LOCATION_REQUIRED_QUESTS,
+  isLocationUnlocked,
+  type LocationId,
+} from '@/game/content/locations';
 
 interface GameState {
   currentCaseId: string;
@@ -206,6 +213,7 @@ export const useGameStore = create<GameState>()(
       setLocation: (locationId) => {
         const current = get().currentLocationId;
         if (current === locationId) return;
+        if (!isLocationUnlocked(locationId, get().completedQuestIds)) return;
         const npcs = buildNpcsForLocation(locationId);
         const previousSelectedId = get().selectedNpc?.id;
         const nextSelected = npcs.find((n) => n.id === previousSelectedId) ?? npcs[0] ?? null;
@@ -260,7 +268,39 @@ export const useGameStore = create<GameState>()(
       completeQuest: (questId) =>
         set((state) => {
           if (state.completedQuestIds.includes(questId)) return state;
-          return { completedQuestIds: [...state.completedQuestIds, questId] };
+          const completedQuestIds = [...state.completedQuestIds, questId];
+
+          const newlyUnlocked = LOCATION_ORDER.filter((locId) => {
+            if (locId === state.currentLocationId) return false;
+            const required = LOCATION_REQUIRED_QUESTS[locId];
+            if (required.length === 0) return false;
+            const wasUnlocked = required.every((q) => state.completedQuestIds.includes(q));
+            const nowUnlocked = required.every((q) => completedQuestIds.includes(q));
+            return !wasUnlocked && nowUnlocked;
+          });
+
+          if (newlyUnlocked.length === 0) {
+            return { completedQuestIds };
+          }
+
+          const now = Date.now();
+          const previousLocationName = LOCATIONS[state.currentLocationId].name.es;
+          const lines: DialogueMessage[] = newlyUnlocked.map((locId) => ({
+            speaker: 'system',
+            text: `¡Enhorabuena! Has completado la investigación en ${previousLocationName}. Procede a la siguiente ubicación: ${LOCATIONS[locId].name.es}.`,
+            timestamp: now,
+          }));
+          const nextLocationName = LOCATIONS[newlyUnlocked[0]!].name.es;
+
+          return {
+            completedQuestIds,
+            dialogueHistory: [...state.dialogueHistory, ...lines],
+            latestFeedback: {
+              isUnderstandable: true,
+              xpAwarded: 0,
+              explanation: `¡Enhorabuena! Has completado ${previousLocationName}. Procede a ${nextLocationName}.`,
+            },
+          };
         }),
       applyFeedback: (feedback, xpType) =>
         set((state) => ({
@@ -389,7 +429,11 @@ export const useGameStore = create<GameState>()(
       },
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        const npcs = buildNpcsForLocation(state.currentLocationId ?? DEFAULT_LOCATION_ID);
+        const persistedLocation = state.currentLocationId ?? DEFAULT_LOCATION_ID;
+        const completed = state.completedQuestIds ?? [];
+        const safeLocation = isLocationUnlocked(persistedLocation, completed) ? persistedLocation : DEFAULT_LOCATION_ID;
+        state.currentLocationId = safeLocation;
+        const npcs = buildNpcsForLocation(safeLocation);
         state.npcs = npcs;
         state.quests = ALL_QUESTS;
         state.selectedNpc = npcs[0] ?? null;

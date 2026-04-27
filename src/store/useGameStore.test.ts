@@ -6,6 +6,7 @@ import { type NpcStatement } from '@/types/game';
 const resetStore = () => {
   useGameStore.persist.clearStorage();
   useGameStore.setState({
+    currentLocationId: 'bar_interior',
     completedQuestIds: [],
     dialogueHistory: [],
     discoveredClues: [],
@@ -192,5 +193,45 @@ describe('useGameStore', () => {
     useGameStore.getState().accuse(CASE_001_CULPRIT, ['fake_id']);
     expect(useGameStore.getState().casePhase).toBe('investigation');
     expect(useGameStore.getState().caseResolution).toBeNull();
+  });
+
+  it('locks the second location until all bar quests are complete', () => {
+    const { setLocation, completeQuest } = useGameStore.getState();
+    setLocation('lucia_apartment');
+    expect(useGameStore.getState().currentLocationId).toBe('bar_interior');
+
+    completeQuest('q1');
+    completeQuest('q2');
+    setLocation('lucia_apartment');
+    expect(useGameStore.getState().currentLocationId).toBe('bar_interior');
+
+    completeQuest('q3');
+    setLocation('lucia_apartment');
+    expect(useGameStore.getState().currentLocationId).toBe('lucia_apartment');
+  });
+
+  it('emits a congratulations system line when the next location unlocks', () => {
+    const { completeQuest } = useGameStore.getState();
+    completeQuest('q1');
+    completeQuest('q2');
+    expect(useGameStore.getState().dialogueHistory.some((line) => line.text.includes('¡Enhorabuena!'))).toBe(false);
+
+    completeQuest('q3');
+    const history = useGameStore.getState().dialogueHistory;
+    const congrats = history.filter((line) => line.text.includes('¡Enhorabuena!'));
+    expect(congrats).toHaveLength(1);
+    expect(congrats[0]?.speaker).toBe('system');
+    expect(congrats[0]?.text).toContain('Apartamento de Lucía');
+    expect(useGameStore.getState().latestFeedback?.explanation).toContain('¡Enhorabuena!');
+  });
+
+  it('does not re-emit the congrats message when an already-unlocking quest is repeated', () => {
+    const { completeQuest } = useGameStore.getState();
+    completeQuest('q1');
+    completeQuest('q2');
+    completeQuest('q3');
+    completeQuest('q3');
+    const congrats = useGameStore.getState().dialogueHistory.filter((line) => line.text.includes('¡Enhorabuena!'));
+    expect(congrats).toHaveLength(1);
   });
 });

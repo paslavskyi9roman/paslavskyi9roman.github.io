@@ -49,3 +49,17 @@ export const LOCATIONS: Record<LocationId, LocationDef> = {
 export const DEFAULT_LOCATION_ID: LocationId = 'bar_interior';
 
 export const LOCATION_ORDER: LocationId[] = ['bar_interior', 'lucia_apartment'];
+
+/**
+ * Quest IDs that must be completed before each location unlocks. The first
+ * scene has no prerequisites; every later scene gates on the previous one.
+ */
+export const LOCATION_REQUIRED_QUESTS: Record<LocationId, string[]> = {
+  bar_interior: [],
+  lucia_apartment: ['q1', 'q2', 'q3'],
+};
+
+export const isLocationUnlocked = (locationId: LocationId, completedQuestIds: string[]): boolean => {
+  const required = LOCATION_REQUIRED_QUESTS[locationId];
+  return required.every((questId) => completedQuestIds.includes(questId));
+};

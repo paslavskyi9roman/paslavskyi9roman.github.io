@@ -1,10 +1,11 @@
 'use client';
 
-import { LOCATION_ORDER, LOCATIONS } from '@/game/content/locations';
+import { LOCATION_ORDER, LOCATIONS, isLocationUnlocked } from '@/game/content/locations';
 import { useGameStore } from '@/store/useGameStore';
 
 export function LocationTabs() {
   const currentLocationId = useGameStore((s) => s.currentLocationId);
+  const completedQuestIds = useGameStore((s) => s.completedQuestIds);
   const setLocation = useGameStore((s) => s.setLocation);
 
   return (
@@ -22,20 +23,26 @@ export function LocationTabs() {
       {LOCATION_ORDER.map((id) => {
         const loc = LOCATIONS[id];
         const active = currentLocationId === id;
+        const unlocked = isLocationUnlocked(id, completedQuestIds);
         return (
           <button
             key={id}
             role="tab"
             aria-selected={active}
+            aria-disabled={!unlocked}
             type="button"
             onClick={() => setLocation(id)}
+            disabled={!unlocked}
+            title={
+              unlocked ? undefined : 'Completa la investigación en la ubicación anterior para desbloquear esta escena.'
+            }
             style={{
               flex: 1,
               padding: '8px 10px',
               background: active ? 'var(--paper)' : 'transparent',
               border: 'none',
               borderRight: id === LOCATION_ORDER[LOCATION_ORDER.length - 1] ? 'none' : '1px solid var(--ink)',
-              cursor: 'pointer',
+              cursor: unlocked ? 'pointer' : 'not-allowed',
               fontFamily: 'var(--sans)',
               fontSize: 11,
               letterSpacing: '0.16em',
@@ -44,6 +51,7 @@ export function LocationTabs() {
               color: active ? 'var(--ink)' : 'var(--ink-faded)',
               borderBottom: active ? '3px solid var(--red)' : '3px solid transparent',
               textAlign: 'left',
+              opacity: unlocked ? 1 : 0.55,
             }}
           >
             <span style={{ display: 'block' }}>{loc.name.es}</span>
@@ -57,7 +65,7 @@ export function LocationTabs() {
                 color: active ? 'var(--ink-soft)' : 'var(--ink-faded)',
               }}
             >
-              {loc.address.es}
+              {unlocked ? loc.address.es : 'Bloqueado'}
             </span>
           </button>
         );
