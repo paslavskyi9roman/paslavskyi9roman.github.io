@@ -44,12 +44,14 @@ export const APARTMENT_NPC_PROFILES: Record<string, Pick<NpcProfile, 'openingLin
 export const APARTMENT_QUESTS: Quest[] = [
   {
     id: 'q4',
+    locationId: 'lucia_apartment',
     title: 'Registra el apartamento',
     objective: 'Encuentra al menos 2 indicios físicos en el piso de Lucía.',
     rewardXp: 35,
   },
   {
     id: 'q5',
+    locationId: 'lucia_apartment',
     title: 'Hila las contradicciones',
     objective: 'Provoca al menos una nueva contradicción interrogando a Lucía en su casa.',
     rewardXp: 45,

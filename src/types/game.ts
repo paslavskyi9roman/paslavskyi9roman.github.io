@@ -1,3 +1,5 @@
+import type { LocationId } from '@/game/content/locations';
+
 export interface DialogueMessage {
   speaker: 'npc' | 'player' | 'system';
   text: string;
@@ -30,6 +32,7 @@ export interface NpcProfile {
 
 export interface Quest {
   id: string;
+  locationId: LocationId;
   title: string;
   objective: string;
   rewardXp: number;

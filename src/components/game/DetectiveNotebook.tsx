@@ -1,8 +1,10 @@
 'use client';
 
+import type { Quest } from '@/types/game';
 import { Es } from '@/components/newsprint/Es';
 import { MeterRow } from '@/components/newsprint/MeterRow';
 import { CASE_001_VOCABULARY, QUEST_BILINGUAL } from '@/game/content/case001-bilingual';
+import { LOCATIONS, LOCATION_ORDER } from '@/game/content/locations';
 import { useGameStore } from '@/store/useGameStore';
 
 export function DetectiveNotebook() {
@@ -14,6 +16,51 @@ export function DetectiveNotebook() {
   const contradictions = useGameStore((s) => s.contradictions);
   const quests = useGameStore((s) => s.quests);
   const completedQuestIds = useGameStore((s) => s.completedQuestIds);
+  const currentLocationId = useGameStore((s) => s.currentLocationId);
+
+  const renderQuestRow = (q: Quest) => {
+    const done = completedQuestIds.includes(q.id);
+    const en = QUEST_BILINGUAL[q.id];
+    return (
+      <li
+        key={q.id}
+        style={{
+          padding: '6px 0',
+          borderBottom: '1px dotted var(--ink-faded)',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: 'var(--sans)',
+            fontSize: 12,
+            fontWeight: 800,
+            color: done ? 'var(--red-deep)' : 'var(--ink)',
+            minWidth: 16,
+          }}
+        >
+          {done ? '✓' : '□'}
+        </span>
+        <div>
+          <div
+            style={{
+              fontFamily: 'var(--display)',
+              fontSize: 14,
+              fontWeight: 700,
+              textDecoration: done ? 'line-through' : 'none',
+            }}
+          >
+            {en ? <Es es={q.title} en={en.title} /> : q.title}
+          </div>
+          <div className="body-serif" style={{ fontSize: 12 }}>
+            {en ? <Es es={q.objective} en={en.objective} /> : q.objective}
+          </div>
+        </div>
+      </li>
+    );
+  };
 
   const totalXp = vocabularyXp + grammarXp + investigationXp;
 
@@ -58,51 +105,41 @@ export function DetectiveNotebook() {
         <span className="kicker">
           <Es es="Misiones" en="Quests" />
         </span>
-        <ul style={{ listStyle: 'none', padding: 0, margin: '6px 0 0' }}>
-          {quests.map((q) => {
-            const done = completedQuestIds.includes(q.id);
-            const en = QUEST_BILINGUAL[q.id];
+        {LOCATION_ORDER.map((locId) => {
+          const locQuests = quests.filter((q) => q.locationId === locId);
+          if (locQuests.length === 0) return null;
+          const isCurrent = locId === currentLocationId;
+          const doneCount = locQuests.filter((q) => completedQuestIds.includes(q.id)).length;
+          const loc = LOCATIONS[locId];
+          const summary = (
+            <span
+              style={{
+                fontFamily: 'var(--sans)',
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+              }}
+            >
+              <Es es={loc.name.es} en={loc.name.en} /> · {doneCount}/{locQuests.length}
+              {doneCount === locQuests.length ? ' ✓' : ''}
+            </span>
+          );
+          if (isCurrent) {
             return (
-              <li
-                key={q.id}
-                style={{
-                  padding: '6px 0',
-                  borderBottom: '1px dotted var(--ink-faded)',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 8,
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: 'var(--sans)',
-                    fontSize: 12,
-                    fontWeight: 800,
-                    color: done ? 'var(--red-deep)' : 'var(--ink)',
-                    minWidth: 16,
-                  }}
-                >
-                  {done ? '✓' : '□'}
-                </span>
-                <div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--display)',
-                      fontSize: 14,
-                      fontWeight: 700,
-                      textDecoration: done ? 'line-through' : 'none',
-                    }}
-                  >
-                    {en ? <Es es={q.title} en={en.title} /> : q.title}
-                  </div>
-                  <div className="body-serif" style={{ fontSize: 12 }}>
-                    {en ? <Es es={q.objective} en={en.objective} /> : q.objective}
-                  </div>
-                </div>
-              </li>
+              <div key={locId} style={{ marginTop: 10 }}>
+                <div style={{ padding: '4px 0' }}>{summary}</div>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>{locQuests.map(renderQuestRow)}</ul>
+              </div>
             );
-          })}
-        </ul>
+          }
+          return (
+            <details key={locId} style={{ marginTop: 8, opacity: 0.55 }}>
+              <summary style={{ cursor: 'pointer', padding: '4px 0' }}>{summary}</summary>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>{locQuests.map(renderQuestRow)}</ul>
+            </details>
+          );
+        })}
       </div>
 
       <div style={{ marginTop: 16 }}>
