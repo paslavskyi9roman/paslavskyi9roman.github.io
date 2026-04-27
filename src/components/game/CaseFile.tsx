@@ -3,7 +3,7 @@
 import { Es } from '@/components/newsprint/Es';
 import { NewsprintPhoto } from '@/components/newsprint/NewsprintPhoto';
 import { Stamp } from '@/components/newsprint/Stamp';
-import { CASE_001_VICTIM } from '@/game/content/case001-bilingual';
+import { CASE_001_VICTIM, LESSON_BILINGUAL } from '@/game/content/case001-bilingual';
 import { useGameStore } from '@/store/useGameStore';
 
 const xpTypeLabel: Record<'vocabulary' | 'grammar' | 'investigation', string> = {
@@ -115,33 +115,38 @@ export function CaseFile() {
 
       <div style={{ marginTop: 16 }}>
         <hr className="rule" />
-        <span className="kicker">Cápsulas de Lección</span>
+        <span className="kicker">
+          <Es es="Cápsulas de Lección" en="Lesson capsules" />
+        </span>
         <ul style={{ listStyle: 'none', padding: 0, margin: '6px 0 0' }}>
-          {lessons.map((l) => (
-            <li
-              key={l.id}
-              style={{
-                padding: '8px 0',
-                borderBottom: '1px dotted var(--ink-faded)',
-              }}
-            >
-              <div
+          {lessons.map((l) => {
+            const en = LESSON_BILINGUAL[l.id];
+            return (
+              <li
+                key={l.id}
                 style={{
-                  fontFamily: 'var(--display)',
-                  fontSize: 14,
-                  fontWeight: 700,
+                  padding: '8px 0',
+                  borderBottom: '1px dotted var(--ink-faded)',
                 }}
               >
-                {l.title}
-                <span className="byline" style={{ marginLeft: 6, fontSize: 9, opacity: 0.7 }}>
-                  · {xpTypeLabel[l.xpType]}
-                </span>
-              </div>
-              <p className="body-serif" style={{ fontSize: 12, marginTop: 2 }}>
-                {l.tip}
-              </p>
-            </li>
-          ))}
+                <div
+                  style={{
+                    fontFamily: 'var(--display)',
+                    fontSize: 14,
+                    fontWeight: 700,
+                  }}
+                >
+                  {en ? <Es es={l.title} en={en.title} /> : l.title}
+                  <span className="byline" style={{ marginLeft: 6, fontSize: 9, opacity: 0.7 }}>
+                    · {xpTypeLabel[l.xpType]}
+                  </span>
+                </div>
+                <p className="body-serif" style={{ fontSize: 12, marginTop: 2 }}>
+                  {en ? <Es es={l.tip} en={en.tip} /> : l.tip}
+                </p>
+              </li>
+            );
+          })}
         </ul>
       </div>
 
