@@ -1,5 +1,7 @@
 'use client';
 
+import { Stamp } from '@/components/newsprint/Stamp';
+import { CASE_001_BILINGUAL_NPCS, CASE_001_SCENE_CLUES } from '@/game/content/case001-bilingual';
 import { useGameStore } from '@/store/useGameStore';
 
 interface ClueJournalProps {
@@ -15,95 +17,261 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
 
   if (!open) return null;
 
+  const totalSceneClues = CASE_001_SCENE_CLUES.length;
+
   const statementsByNpc = recordedStatements.reduce<Record<string, typeof recordedStatements>>((acc, statement) => {
     (acc[statement.npcId] ??= []).push(statement);
     return acc;
   }, {});
 
+  const sceneClueLookup = new Map(CASE_001_SCENE_CLUES.map((clue) => [clue.id, clue]));
+
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-4">
-      <div className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-slate-700 bg-noir-900 p-6 shadow-xl">
-        <div className="flex items-start justify-between">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="journal-title"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(15, 12, 8, 0.85)',
+        zIndex: 100,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 24,
+      }}
+    >
+      <div
+        className="paper"
+        style={{
+          maxWidth: 980,
+          width: '100%',
+          maxHeight: '92vh',
+          overflowY: 'auto',
+          padding: 0,
+          border: '2px solid var(--ink)',
+          boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
+          position: 'relative',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '12px 22px',
+            borderBottom: '3px solid var(--ink)',
+            background: 'var(--paper-shadow)',
+          }}
+        >
           <div>
-            <p className="text-xs uppercase tracking-widest text-amber-300">Diario del detective</p>
-            <h2 className="text-xl font-semibold">Pistas, declaraciones y contradicciones</h2>
+            <span className="kicker">Diario del Detective · Sección Segunda</span>
+            <h2 id="journal-title" className="headline" style={{ fontSize: 28, marginTop: 2 }}>
+              Pruebas, Declaraciones y Contradicciones
+            </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="rounded-md border border-slate-600 px-2 py-1 text-xs hover:bg-noir-800"
-            aria-label="Cerrar diario"
-          >
+          <button onClick={onClose} className="btn-ghost" aria-label="Cerrar diario">
             Cerrar
           </button>
         </div>
 
-        <section className="mt-4">
-          <h3 className="text-sm font-medium text-amber-200">Pistas ({discoveredClues.length})</h3>
-          {discoveredClues.length === 0 ? (
-            <p className="mt-1 text-sm text-slate-400">Aún no has recogido pistas físicas.</p>
-          ) : (
-            <ul className="mt-2 space-y-2">
-              {discoveredClues.map((clue) => (
-                <li key={clue.id} className="rounded border border-slate-700 bg-noir-950 p-2 text-sm">
-                  <p className="font-medium text-slate-100">{clue.title}</p>
-                  <p className="text-xs text-slate-400">{clue.description}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="mt-4">
-          <h3 className="text-sm font-medium text-amber-200">Declaraciones</h3>
-          {recordedStatements.length === 0 ? (
-            <p className="mt-1 text-sm text-slate-400">Aún no has registrado declaraciones de los testigos.</p>
-          ) : (
-            <ul className="mt-2 space-y-2">
-              {Object.entries(statementsByNpc).map(([npcId, statements]) => {
-                const npc = npcs.find((n) => n.id === npcId);
+        <div
+          style={{
+            padding: 22,
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gap: 22,
+          }}
+        >
+          <section>
+            <span className="kicker">
+              Pistas Físicas · {discoveredClues.length}/{totalSceneClues}
+            </span>
+            <hr className="rule" style={{ marginTop: 4 }} />
+            {discoveredClues.length === 0 ? (
+              <p className="body-serif" style={{ fontStyle: 'italic', color: 'var(--ink-faded)' }}>
+                Aún sin pruebas físicas.
+              </p>
+            ) : (
+              discoveredClues.map((clue) => {
+                const scene = sceneClueLookup.get(clue.id);
                 return (
-                  <li key={npcId} className="rounded border border-slate-700 bg-noir-950 p-2 text-sm">
-                    <p className="font-medium text-slate-100">{npc?.name ?? npcId}</p>
-                    <ul className="mt-1 space-y-1 text-xs text-slate-300">
-                      {statements.map((statement) => (
-                        <li key={statement.id}>
-                          <span className="text-slate-400">[{statement.topic}]</span> {statement.value}
+                  <div
+                    key={clue.id}
+                    style={{
+                      padding: '10px 12px',
+                      border: '1px solid var(--ink)',
+                      background: 'var(--paper)',
+                      marginTop: 10,
+                      position: 'relative',
+                    }}
+                  >
+                    <Stamp
+                      rotate={-4}
+                      style={{
+                        position: 'absolute',
+                        top: -10,
+                        right: -8,
+                        fontSize: 9,
+                        padding: '3px 8px',
+                      }}
+                    >
+                      Prueba
+                    </Stamp>
+                    <div
+                      style={{
+                        fontFamily: 'var(--display)',
+                        fontSize: 15,
+                        fontWeight: 800,
+                      }}
+                    >
+                      {clue.title}
+                    </div>
+                    <p className="body-serif" style={{ fontSize: 12, marginTop: 4 }}>
+                      {clue.description}
+                    </p>
+                    {scene && (
+                      <div className="byline" style={{ fontSize: 9, marginTop: 6 }}>
+                        {scene.titleEn} · {scene.descriptionEn}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </section>
+
+          <section>
+            <span className="kicker">Declaraciones</span>
+            <hr className="rule" style={{ marginTop: 4 }} />
+            {recordedStatements.length === 0 ? (
+              <p className="body-serif" style={{ fontStyle: 'italic', color: 'var(--ink-faded)' }}>
+                Aún sin declaraciones registradas.
+              </p>
+            ) : (
+              Object.entries(statementsByNpc).map(([npcId, list]) => {
+                const npc = npcs.find((n) => n.id === npcId);
+                const portrait = CASE_001_BILINGUAL_NPCS[npcId]?.portrait ?? `/assets/characters/${npcId}.png`;
+                return (
+                  <div
+                    key={npcId}
+                    style={{
+                      marginTop: 10,
+                      padding: 10,
+                      border: '1px solid var(--ink)',
+                      background: 'var(--paper)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        marginBottom: 4,
+                      }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={portrait}
+                        alt={npc?.name ?? npcId}
+                        width={28}
+                        height={36}
+                        style={{ objectFit: 'cover', filter: 'sepia(0.4) contrast(1.2)' }}
+                      />
+                      <div
+                        style={{
+                          fontFamily: 'var(--display)',
+                          fontWeight: 800,
+                          fontSize: 14,
+                        }}
+                      >
+                        {npc?.name ?? npcId}
+                      </div>
+                    </div>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: '6px 0 0' }}>
+                      {list.map((s) => (
+                        <li
+                          key={s.id}
+                          className="body-serif"
+                          style={{
+                            fontSize: 12,
+                            padding: '4px 0',
+                            borderBottom: '1px dotted var(--ink-faded)',
+                          }}
+                        >
+                          <span className="byline" style={{ fontSize: 9 }}>
+                            [{s.topic}]
+                          </span>{' '}
+                          {s.value}
                         </li>
                       ))}
                     </ul>
-                  </li>
+                  </div>
                 );
-              })}
-            </ul>
-          )}
-        </section>
+              })
+            )}
+          </section>
 
-        <section className="mt-4">
-          <h3 className="text-sm font-medium text-rose-300">Contradicciones ({contradictions.length})</h3>
-          {contradictions.length === 0 ? (
-            <p className="mt-1 text-sm text-slate-400">No hay contradicciones detectadas todavía.</p>
-          ) : (
-            <ul className="mt-2 space-y-2">
-              {contradictions.map((record) => {
-                const clue = discoveredClues.find((c) => c.id === record.clueId);
-                const statement = recordedStatements.find((s) => s.id === record.statementId);
-                const npc = npcs.find((n) => n.id === record.npcId);
+          <section>
+            <span className="kicker" style={{ color: 'var(--red)' }}>
+              ⚡ Contradicciones · {contradictions.length}
+            </span>
+            <hr className="rule-thick" style={{ marginTop: 4, borderTopColor: 'var(--red)' }} />
+            {contradictions.length === 0 ? (
+              <p className="body-serif" style={{ fontStyle: 'italic', color: 'var(--ink-faded)' }}>
+                Sin grietas detectadas. Aún.
+              </p>
+            ) : (
+              contradictions.map((c) => {
+                const clue = discoveredClues.find((x) => x.id === c.clueId);
+                const stmt = recordedStatements.find((x) => x.id === c.statementId);
+                const npc = npcs.find((x) => x.id === c.npcId);
                 return (
-                  <li
-                    key={record.id}
-                    className="rounded border border-rose-500/30 bg-rose-500/5 p-2 text-sm text-slate-200"
+                  <div
+                    key={c.id}
+                    style={{
+                      marginTop: 10,
+                      padding: 12,
+                      border: '2px solid var(--red)',
+                      background: 'rgba(164, 24, 24, 0.05)',
+                      position: 'relative',
+                    }}
                   >
-                    <p className="font-medium text-rose-200">{npc?.name ?? record.npcId}</p>
-                    <p className="text-xs text-slate-300">
-                      <span className="text-amber-200">Pista:</span> {clue?.title ?? record.clueId} —{' '}
-                      <span className="text-amber-200">Declaración:</span> {statement?.value ?? record.statementId}
-                    </p>
-                  </li>
+                    <div
+                      style={{
+                        fontFamily: 'var(--display)',
+                        fontSize: 14,
+                        fontWeight: 800,
+                        color: 'var(--red-deep)',
+                      }}
+                    >
+                      vs. {npc?.name ?? c.npcId}
+                    </div>
+                    <div className="body-serif" style={{ fontSize: 12, marginTop: 6 }}>
+                      <strong>Pista:</strong> {clue?.title ?? c.clueId}
+                    </div>
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        margin: '6px 0',
+                        fontFamily: 'var(--display)',
+                        fontSize: 18,
+                        fontStyle: 'italic',
+                        color: 'var(--red-deep)',
+                      }}
+                    >
+                      ↯
+                    </div>
+                    <div className="body-serif" style={{ fontSize: 12 }}>
+                      <strong>Declaración:</strong> {stmt?.value ?? c.statementId}
+                    </div>
+                  </div>
                 );
-              })}
-            </ul>
-          )}
-        </section>
+              })
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );

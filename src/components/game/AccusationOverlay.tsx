@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { Masthead } from '@/components/newsprint/Masthead';
+import { NewsprintPhoto } from '@/components/newsprint/NewsprintPhoto';
+import { Stamp } from '@/components/newsprint/Stamp';
+import { CASE_001_BILINGUAL_NPCS } from '@/game/content/case001-bilingual';
 import { useGameStore } from '@/store/useGameStore';
 
 interface AccusationOverlayProps {
@@ -25,6 +29,7 @@ export function AccusationOverlay({ open, onClose }: AccusationOverlayProps) {
 
   const isResolved = casePhase === 'resolved';
   const accusableNpcs = npcs.filter((n) => n.id !== 'npc_inspectora_ruiz');
+  const accusedNpc = npcs.find((n) => n.id === accusedNpcId);
 
   const toggleContradiction = (id: string) => {
     setSelectedContradictionIds((prev) => {
@@ -40,122 +45,202 @@ export function AccusationOverlay({ open, onClose }: AccusationOverlayProps) {
     accuse(selectedNpcId, [...selectedContradictionIds]);
   };
 
-  const accusedNpc = npcs.find((n) => n.id === accusedNpcId);
-
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 p-4">
-      <div className="w-full max-w-2xl rounded-xl border border-amber-400/30 bg-noir-900 p-6 shadow-xl">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-amber-300">Acusación formal</p>
-            <h2 className="text-xl font-semibold text-amber-100">¿Quién es el culpable?</h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-md border border-slate-600 px-2 py-1 text-xs hover:bg-noir-800"
-            aria-label="Cerrar acusación"
-          >
-            Cerrar
-          </button>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="accusation-title"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(15, 12, 8, 0.9)',
+        zIndex: 100,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 24,
+      }}
+    >
+      <div
+        className="paper"
+        style={{
+          maxWidth: 820,
+          width: '100%',
+          maxHeight: '92vh',
+          overflowY: 'auto',
+          padding: 0,
+          border: '2px solid var(--ink)',
+          boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
+        }}
+      >
+        <div style={{ padding: '0 32px' }}>
+          <Masthead small subtitle="Edición Extraordinaria · El Veredicto" subtitleEn="Special Edition · The Verdict" />
         </div>
 
         {isResolved ? (
-          <div className="mt-4 space-y-3">
-            <div
-              className={`rounded-lg border p-4 text-sm ${
-                caseResolution === 'solved'
-                  ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
-                  : 'border-rose-400/40 bg-rose-500/10 text-rose-200'
-              }`}
-            >
-              <p className="text-base font-semibold">
-                {caseResolution === 'solved' ? 'Caso resuelto' : 'Acusación fallida'}
-              </p>
-              <p className="mt-1 text-sm">
-                {caseResolution === 'solved'
-                  ? `Acusaste a ${accusedNpc?.name ?? accusedNpcId} con pruebas sólidas.`
-                  : `Acusaste a ${accusedNpc?.name ?? accusedNpcId}, pero el caso no quedó resuelto.`}
-              </p>
+          <div style={{ padding: '8px 32px 32px', textAlign: 'center' }}>
+            <span className="kicker">Edición de medianoche</span>
+            <h1 id="accusation-title" className="headline" style={{ fontSize: 64, lineHeight: 0.95, marginTop: 6 }}>
+              {caseResolution === 'solved' ? (
+                <>
+                  CASO <em style={{ fontStyle: 'italic', color: 'var(--red-deep)' }}>RESUELTO</em>
+                </>
+              ) : (
+                <>
+                  ACUSACIÓN <em style={{ fontStyle: 'italic', color: 'var(--red-deep)' }}>FALLIDA</em>
+                </>
+              )}
+            </h1>
+            <hr className="rule-fancy" style={{ margin: '14px auto', width: '60%' }} />
+            <p className="body-serif" style={{ maxWidth: 520, margin: '12px auto', fontSize: 15 }}>
+              {caseResolution === 'solved' ? (
+                <>
+                  Acusaste a <strong>{accusedNpc?.name ?? accusedNpcId}</strong> con pruebas físicas que rompen su
+                  coartada. Madrid duerme un poco mejor esta noche.{' '}
+                  <span className="handwritten" style={{ fontSize: 22 }}>
+                    {' '}
+                    +25 XP
+                  </span>
+                </>
+              ) : (
+                <>
+                  Acusaste a <strong>{accusedNpc?.name ?? accusedNpcId}</strong>, pero las pruebas no sostienen la
+                  acusación. El verdadero culpable sigue suelto.
+                </>
+              )}
+            </p>
+            <Stamp rotate={-6} color={caseResolution === 'solved' ? 'red' : 'blue'} className="stamp-classified">
+              {caseResolution === 'solved' ? 'Caso cerrado' : 'Reabierto'}
+            </Stamp>
+            <div style={{ marginTop: 24 }}>
+              <button onClick={onClose} className="btn-news">
+                Volver al expediente
+              </button>
             </div>
-            <p className="text-xs text-slate-400">Para reabrir el caso, borra el progreso local desde el navegador.</p>
           </div>
         ) : (
-          <>
-            <p className="mt-3 text-sm text-slate-300">
-              Selecciona al sospechoso y marca al menos una contradicción que respalde la acusación.
-            </p>
+          <div style={{ padding: '8px 32px 28px' }}>
+            <span className="kicker">Acusación formal · Fiscalía de Madrid</span>
+            <h2 id="accusation-title" className="headline" style={{ fontSize: 36, marginTop: 4 }}>
+              ¿A quién señala?
+            </h2>
+            <hr className="rule-thick" style={{ margin: '10px 0 18px' }} />
 
-            <section className="mt-4">
-              <h3 className="text-sm font-medium text-amber-200">Sospechoso</h3>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                {accusableNpcs.map((npc) => (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 12,
+              }}
+            >
+              {accusableNpcs.map((npc) => {
+                const portrait = CASE_001_BILINGUAL_NPCS[npc.id]?.portrait ?? `/assets/characters/${npc.id}.png`;
+                const selected = selectedNpcId === npc.id;
+                return (
                   <button
                     key={npc.id}
                     onClick={() => setSelectedNpcId(npc.id)}
-                    className={`rounded-md border px-3 py-2 text-left text-sm ${
-                      selectedNpcId === npc.id
-                        ? 'border-amber-300 bg-amber-200/10'
-                        : 'border-slate-600 hover:bg-noir-800'
-                    }`}
+                    style={{
+                      display: 'flex',
+                      gap: 12,
+                      padding: 10,
+                      alignItems: 'center',
+                      border: selected ? '3px solid var(--red)' : '2px solid var(--ink)',
+                      background: selected ? 'rgba(164, 24, 24, 0.08)' : 'var(--paper)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
                   >
-                    <span className="block font-medium">{npc.name}</span>
-                    <span className="block text-xs text-slate-400">{npc.role}</span>
+                    <div
+                      style={{
+                        width: 56,
+                        height: 70,
+                        flexShrink: 0,
+                        position: 'relative',
+                      }}
+                    >
+                      <NewsprintPhoto src={portrait} alt={npc.name} height={70} />
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontFamily: 'var(--display)',
+                          fontSize: 18,
+                          fontWeight: 800,
+                        }}
+                      >
+                        {npc.name}
+                      </div>
+                      <div className="byline">{npc.role}</div>
+                    </div>
                   </button>
-                ))}
-              </div>
-            </section>
+                );
+              })}
+            </div>
 
-            <section className="mt-4">
-              <h3 className="text-sm font-medium text-rose-300">Contradicciones de apoyo</h3>
+            <div style={{ marginTop: 20 }}>
+              <span className="kicker" style={{ color: 'var(--red)' }}>
+                ⚡ Pruebas para sostener la acusación
+              </span>
+              <hr className="rule" style={{ marginTop: 4 }} />
               {contradictions.length === 0 ? (
-                <p className="mt-1 text-sm text-slate-400">
-                  No has detectado contradicciones. Vuelve a la escena y sigue investigando.
+                <p className="body-serif" style={{ fontStyle: 'italic', marginTop: 8 }}>
+                  No hay contradicciones registradas. La fiscalía rechazará la acusación.
                 </p>
               ) : (
-                <ul className="mt-2 space-y-2">
-                  {contradictions.map((record) => {
-                    const clue = discoveredClues.find((c) => c.id === record.clueId);
-                    const statement = recordedStatements.find((s) => s.id === record.statementId);
-                    const checked = selectedContradictionIds.has(record.id);
-                    return (
-                      <li key={record.id}>
-                        <label className="flex cursor-pointer items-start gap-2 rounded border border-slate-700 bg-noir-950 p-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggleContradiction(record.id)}
-                            className="mt-1"
-                          />
-                          <span>
-                            <span className="block text-slate-100">{clue?.title ?? record.clueId}</span>
-                            <span className="block text-xs text-slate-400">
-                              vs {statement?.value ?? record.statementId}
-                            </span>
-                          </span>
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
+                contradictions.map((c) => {
+                  const clue = discoveredClues.find((x) => x.id === c.clueId);
+                  const stmt = recordedStatements.find((x) => x.id === c.statementId);
+                  const checked = selectedContradictionIds.has(c.id);
+                  return (
+                    <label
+                      key={c.id}
+                      style={{
+                        display: 'flex',
+                        gap: 10,
+                        padding: 10,
+                        border: '1px solid var(--ink)',
+                        background: checked ? 'rgba(164, 24, 24, 0.06)' : 'var(--paper)',
+                        marginTop: 8,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleContradiction(c.id)}
+                        style={{ marginTop: 4 }}
+                      />
+                      <div className="body-serif" style={{ fontSize: 13 }}>
+                        <strong>{clue?.title ?? c.clueId}</strong> contradice <em>{stmt?.value ?? c.statementId}</em>
+                      </div>
+                    </label>
+                  );
+                })
               )}
-            </section>
+            </div>
 
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={onClose}
-                className="rounded-md border border-slate-600 px-4 py-2 text-sm hover:bg-noir-800"
-              >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 10,
+                marginTop: 22,
+              }}
+            >
+              <button onClick={onClose} className="btn-ghost">
                 Cancelar
               </button>
               <button
                 onClick={submit}
                 disabled={!selectedNpcId}
-                className="rounded-md bg-amber-400 px-4 py-2 text-sm font-medium text-noir-950 hover:bg-amber-300 disabled:opacity-50"
+                className="btn-red"
+                style={{ opacity: !selectedNpcId ? 0.5 : 1 }}
               >
-                Acusar
+                Formular acusación
               </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
