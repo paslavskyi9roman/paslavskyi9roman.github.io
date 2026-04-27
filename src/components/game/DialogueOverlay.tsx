@@ -49,10 +49,10 @@ export function DialogueOverlay() {
       window.removeEventListener('madrid-noir:clue-found', onClue);
       window.removeEventListener('madrid-noir:npc-selected', onNpcSelected);
     };
-  }, [addClue, addNpcLine, applyFeedback, completeQuest, selectNpcById]);
+  }, [addClue, addNpcLine, applyFeedback, completeQuest, selectNpcById, selectedNpc]);
 
   const helper = useMemo(
-    () => 'Support hint (EN/UK): Ask precise timeline questions to reveal contradictions. / Підказка: уточнюй час, щоб знайти суперечності.',
+    () => 'Nota bilingüe intencional (ES/EN): pregunta por horarios concretos para revelar contradicciones. / Intentional bilingual hint (ES/EN): ask precise timeline questions to reveal contradictions.',
     [],
   );
 
@@ -61,7 +61,7 @@ export function DialogueOverlay() {
     addPlayerLine(text);
     const outcome = NPC_OUTCOMES[selectedNpc.id]?.[text];
     if (!outcome) return;
-    addNpcLine(outcome.reply);
+    addNpcLine(outcome.reply, { id: selectedNpc.id, name: selectedNpc.name });
     applyFeedback(outcome.feedback, outcome.xpType);
     if (selectedNpc.id === 'npc_lucia_vargas' && text === '¿A qué hora llegaste a casa?') {
       completeQuest('q1');
@@ -95,7 +95,7 @@ export function DialogueOverlay() {
       });
 
       const data = (await response.json()) as { npcReply: string; feedback: DialogueFeedback };
-      addNpcLine(data.npcReply);
+      addNpcLine(data.npcReply, selectedNpc ? { id: selectedNpc.id, name: selectedNpc.name } : undefined);
       applyFeedback(data.feedback, 'vocabulary');
     } finally {
       setLoading(false);
@@ -104,7 +104,7 @@ export function DialogueOverlay() {
 
   return (
     <aside className="pointer-events-auto absolute bottom-0 left-0 right-0 m-3 rounded-xl border border-slate-700 bg-noir-900/95 p-4">
-      <p className="text-xs uppercase tracking-widest text-amber-300">Interrogation</p>
+      <p className="text-xs uppercase tracking-widest text-amber-300">Interrogatorio</p>
       <h2 className="text-lg font-semibold">{selectedNpc?.name ?? 'Selecciona un NPC'}</h2>
       <p className="mt-1 text-sm text-slate-300">{helper}</p>
       <div className="mt-2 flex flex-wrap gap-2">
@@ -121,7 +121,7 @@ export function DialogueOverlay() {
       <div className="mt-3 max-h-40 space-y-2 overflow-y-auto pr-1 text-sm">
         {dialogueHistory.map((line, idx) => (
           <p key={`${line.timestamp}-${idx}`}>
-            <span className={line.speaker === 'player' ? 'text-sky-300' : 'text-rose-300'}>{line.speaker === 'player' ? 'Tú' : 'Lucía'}:</span>{' '}
+            <span className={line.speaker === 'player' ? 'text-sky-300' : 'text-rose-300'}>{line.speaker === 'player' ? 'Tú' : line.npcName ?? 'NPC'}:</span>{' '}
             {line.text}
           </p>
         ))}

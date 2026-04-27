@@ -2,6 +2,8 @@ export interface DialogueMessage {
   speaker: 'npc' | 'player' | 'system';
   text: string;
   timestamp: number;
+  npcId?: string;
+  npcName?: string;
 }
 
 export interface DialogueFeedback {
