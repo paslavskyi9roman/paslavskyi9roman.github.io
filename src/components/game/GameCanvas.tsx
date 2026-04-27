@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import * as Phaser from 'phaser';
-import { InvestigationScene } from '@/game/scenes/InvestigationScene';
 
 export function GameCanvas() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -10,17 +8,27 @@ export function GameCanvas() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const game = new Phaser.Game({
-      type: Phaser.AUTO,
-      width: 960,
-      height: 540,
-      parent: containerRef.current,
-      backgroundColor: '#000000',
-      scene: [InvestigationScene],
-    });
+    let game: import('phaser').Game | null = null;
+    let cancelled = false;
+
+    void Promise.all([import('phaser'), import('@/game/scenes/InvestigationScene')]).then(
+      ([Phaser, { InvestigationScene }]) => {
+        if (cancelled || !containerRef.current) return;
+
+        game = new Phaser.Game({
+          type: Phaser.AUTO,
+          width: 960,
+          height: 540,
+          parent: containerRef.current,
+          backgroundColor: '#000000',
+          scene: [InvestigationScene],
+        });
+      },
+    );
 
     return () => {
-      game.destroy(true);
+      cancelled = true;
+      game?.destroy(true);
     };
   }, []);
 
