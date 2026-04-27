@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { DialogueFeedback, DialogueMessage } from '@/types/game';
-import { NPC_OUTCOMES } from '@/game/content/case001';
+import { CASE_001_ROUTE_QUEST_REQUIRED_CLUES, NPC_OUTCOMES } from '@/game/content/case001';
 
 export function DialogueOverlay() {
   const { currentCaseId, dialogueHistory, selectedNpc, npcs, selectNpcById, addPlayerLine, addNpcLine, addClue, completeQuest, applyFeedback } =
@@ -20,9 +20,19 @@ export function DialogueOverlay() {
   useEffect(() => {
     const onClue = (event: Event) => {
       const customEvent = event as CustomEvent<{ id: string; title: string; description: string }>;
+
+      const { discoveredClues } = useGameStore.getState();
+      const clueAlreadyDiscovered = discoveredClues.some((clue) => clue.id === customEvent.detail.id);
+      if (clueAlreadyDiscovered) {
+        return;
+      }
+
       addClue(customEvent.detail);
-      addNpcLine('¿Encontraste algo? Esa pista cambia la línea temporal.', selectedNpc ? { id: selectedNpc.id, name: selectedNpc.name } : undefined);
-      completeQuest('q2');
+      const nextDiscoveredCount = useGameStore.getState().discoveredClues.length;
+      addNpcLine('¿Encontraste algo? Esa pista cambia la línea temporal.');
+      if (nextDiscoveredCount >= CASE_001_ROUTE_QUEST_REQUIRED_CLUES) {
+        completeQuest('q2');
+      }
       applyFeedback(
         { isUnderstandable: true, xpAwarded: 12, explanation: 'Encontraste una pista clave en la escena.' },
         'investigation',
