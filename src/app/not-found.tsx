@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Stamp } from '@/components/newsprint/Stamp';
 import { defaultLocale } from '@/i18n/config';
 
-export default function LocaleNotFound() {
+export default function NotFound() {
   return (
     <div className="paper" style={{ minHeight: '100vh', padding: '60px 60px 40px' }}>
       <div
