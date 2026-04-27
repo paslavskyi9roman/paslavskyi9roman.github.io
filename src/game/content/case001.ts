@@ -19,25 +19,46 @@ export const CASE_001_NPCS: NpcProfile[] = [
     id: 'npc_lucia_vargas',
     name: 'Lucía Vargas',
     role: 'Sospechosa principal',
-    openingLine: 'No vi nada esa noche. Estaba en casa.',
+    openingLine:
+      'No vi nada esa noche, detective. Estaba en casa, sola, oyendo la radio. Si quiere preguntar, hágalo rápido — me espera el último pase y don Mauricio descuenta cada minuto del jornal.',
     lessonFocus: 'investigation',
-    quickReplies: ['¿Estabas sola?', '¿A qué hora llegaste a casa?', 'No entiendo.'],
+    quickReplies: [
+      '¿Estabas sola?',
+      '¿A qué hora llegaste a casa?',
+      '¿Qué cantaste esa noche?',
+      '¿Conocías al periodista?',
+      'No entiendo.',
+    ],
   },
   {
     id: 'npc_diego_torres',
     name: 'Diego Torres',
     role: 'Camarero del bar',
-    openingLine: 'Cerramos a medianoche, pero algunos clientes se quedaron fuera.',
+    openingLine:
+      'Cerramos a medianoche, pero algunos clientes se quedaron fuera, fumando bajo la marquesina. Yo estaba secando vasos con una mano y echando a borrachos con la otra. Con eso le digo todo y nada, detective.',
     lessonFocus: 'vocabulary',
-    quickReplies: ['¿Viste a Lucía?', '¿Quién pagó la última ronda?', 'Repítelo más despacio.'],
+    quickReplies: [
+      '¿Viste a Lucía?',
+      '¿Quién pagó la última ronda?',
+      '¿Hubo discusiones esa noche?',
+      'Describe al hombre del abrigo gris.',
+      'Repítelo más despacio.',
+    ],
   },
   {
     id: 'npc_inspectora_ruiz',
     name: 'Inspectora Ruiz',
     role: 'Mentora policial',
-    openingLine: 'Tienes que conectar testigos, tiempo y pruebas físicas.',
+    openingLine:
+      'Tienes que conectar testigos, tiempo y pruebas físicas. Cada coartada se rompe por el eslabón más débil; tu trabajo no es destrozarla a martillazos, sino encontrar la grieta y soplar despacio hasta que se abra.',
     lessonFocus: 'grammar',
-    quickReplies: ['¿Qué debo preguntar primero?', '¿Cómo confirmo una coartada?', '¿Puedes corregir mi frase?'],
+    quickReplies: [
+      '¿Qué debo preguntar primero?',
+      '¿Cómo confirmo una coartada?',
+      '¿Tomamos huellas en el callejón?',
+      '¿Quién avisó a la policía?',
+      '¿Puedes corregir mi frase?',
+    ],
   },
 ];
 
@@ -83,8 +104,14 @@ export const CASE_001_LESSONS: Lesson[] = [
 export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
   npc_lucia_vargas: {
     '¿Estabas sola?': {
-      reply: 'Sí... sola. Mi compañera de piso estaba de viaje.',
-      feedback: { isUnderstandable: true, xpAwarded: 8, explanation: 'Buena pregunta para verificar coartadas.' },
+      reply:
+        'Sí… completamente sola. Mi compañera de piso, Pilar, está en Salamanca cuidando a su madre desde el lunes. No espero visitas y no las recibo: la portera puede confirmarlo, sube de mala gana hasta para subir la leche.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 8,
+        explanation:
+          'Buena pregunta para verificar coartadas — además, ahora tienes nombre (Pilar) y testigo (la portera).',
+      },
       xpType: 'investigation',
       statement: {
         id: 'lucia_alone_home',
@@ -93,11 +120,13 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
       },
     },
     '¿A qué hora llegaste a casa?': {
-      reply: 'Sobre las diez y media... creo.',
+      reply:
+        'Sobre las diez y media… creo. Crucé la Plaza de Lavapiés, compré tabaco al sereno y subí los tres pisos sin encender la luz. Después, nada: la radio nacional, una taza de tila, y a la cama antes de las once en punto.',
       feedback: {
         isUnderstandable: true,
         xpAwarded: 10,
-        explanation: 'Excelente enfoque temporal para detectar contradicciones.',
+        explanation:
+          'Excelente enfoque temporal: ahora tienes una secuencia (plaza, sereno, escalera) que se puede verificar.',
       },
       xpType: 'investigation',
       statement: {
@@ -106,55 +135,142 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
         value: 'Lucía dijo llegar a las 22:30',
       },
     },
+    '¿Qué cantaste esa noche?': {
+      reply:
+        '«Ojos verdes» y «La hija de don Juan Alba». La sala estaba llena, hasta las paredes sudaban. Cuando una canta, detective, no piensa en nadie más; ni en lo que pasa fuera, ni en lo que se debe en la barra.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 9,
+        explanation: 'Pregunta cultural que abre vocabulario de la copla: «pase», «sala», «sudar las paredes».',
+      },
+      xpType: 'vocabulary',
+    },
+    '¿Conocías al periodista?': {
+      reply:
+        'Coincidíamos. Ramón venía algunas noches a tomar nota — preguntaba por las canciones, por los habituales del barrio. Yo le servía vermú; él me servía silencio cuando se ponía pesado. Nada más, detective. Nada más.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 10,
+        explanation: 'La triple negación («nada más, detective. Nada más») suele señalar incomodidad. Anótala.',
+      },
+      xpType: 'investigation',
+    },
     'No entiendo.': {
-      reply: 'Quiero decir que no salí de casa en toda la noche.',
+      reply:
+        'Quiero decir que no salí de casa en toda la noche. Ni para ir al estanco, ni a por pan, ni a saludar a una vecina. Eso es lo que quiero decir, detective — escríbalo así, palabra por palabra, y haga que se lo firme.',
       feedback: {
         isUnderstandable: true,
         xpAwarded: 4,
         suggestedCorrection: 'No lo entiendo.',
-        explanation: 'Añadir "lo" suena más natural en este contexto.',
+        explanation: 'Añadir «lo» suena más natural cuando se pide aclaración en español peninsular.',
       },
       xpType: 'grammar',
     },
   },
   npc_diego_torres: {
     '¿Viste a Lucía?': {
-      reply: 'Sí, salió rápido y miró su móvil varias veces.',
-      feedback: { isUnderstandable: true, xpAwarded: 9, explanation: 'Pregunta directa que produce detalle útil.' },
+      reply:
+        'Sí, la vi salir rápido. Miró el reloj de pared dos o tres veces antes de irse, como quien tiene una cita y la teme. Cogió el abrigo del perchero, no se despidió de nadie y pasó por la puerta del callejón en lugar de la calle.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 9,
+        explanation: 'Pregunta directa que produce detalle útil — el callejón coloca a Lucía cerca del cuerpo.',
+      },
       xpType: 'investigation',
     },
     '¿Quién pagó la última ronda?': {
-      reply: 'Un hombre con abrigo gris. No era cliente habitual.',
+      reply:
+        'Un hombre con abrigo gris, traje cortado por sastre — no es de los nuestros. Pagó dos vermús y un café cargado, dejó propina en monedas grandes y salió por la puerta del callejón. Olía a colonia de hotel, no a barbería de barrio.',
       feedback: {
         isUnderstandable: true,
         xpAwarded: 11,
-        explanation: 'Excelente: detalles de transacción aportan nueva pista.',
+        explanation:
+          'Excelente: la transacción aporta clase social, ruta de salida y un olor que sitúa al hombre en un hotel.',
+      },
+      xpType: 'vocabulary',
+    },
+    '¿Hubo discusiones esa noche?': {
+      reply:
+        'Una, en la mesa del fondo: Ramón Quintero y un señor que no había visto antes. Voces bajas, dedos en alto. Cuando me acerqué con el sifón, callaron los dos a la vez. Esa clase de silencio no se sirve, detective; se compra.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 12,
+        explanation:
+          'Pregunta abierta que pesca un episodio — y un giro idiomático («el silencio se compra») digno del cuaderno.',
+      },
+      xpType: 'investigation',
+    },
+    'Describe al hombre del abrigo gris.': {
+      reply:
+        'Alto, pelo cano, manos cuidadas — manos que no parten leña. Anillo de sello en el meñique. Olor a colonia de hotel, no a barbería. Las cerillas que dejó en la barra eran del Hotel Atocha. Eso, detective, ya no es coincidencia.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 11,
+        explanation: 'Descripción rica en sustantivos: practica «cano», «sello», «meñique», «cerillas».',
       },
       xpType: 'vocabulary',
     },
     'Repítelo más despacio.': {
-      reply: 'Claro: Lucía salió sola a las 23:40.',
-      feedback: { isUnderstandable: true, xpAwarded: 6, explanation: 'Pediste aclaración con cortesía y precisión.' },
+      reply:
+        'Claro, sin prisa: Lu-cí-a sa-lió so-la a las on-ce y cua-ren-ta. Le miré el reloj a la pared para asegurarme. Lo apunto en mi cabeza por si acaso, detective; en este oficio, los minutos pesan más que los billetes.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 6,
+        explanation:
+          'Pediste aclaración con cortesía y precisión — escucha cómo separa las sílabas para fijar la hora.',
+      },
       xpType: 'grammar',
     },
   },
   npc_inspectora_ruiz: {
     '¿Qué debo preguntar primero?': {
-      reply: 'Empieza por hora, lugar y compañía. Ese orden revela grietas.',
-      feedback: { isUnderstandable: true, xpAwarded: 7, explanation: 'Buen enfoque de estructura interrogativa.' },
+      reply:
+        'Empieza por la hora, sigue por el lugar y termina por la compañía. Ese orden revela grietas: nadie inventa los tres datos a la vez sin contradecirse en al menos uno. Apúntalo en el cuaderno: cronología antes que motivo.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 7,
+        explanation: 'Buen enfoque de estructura interrogativa. Memoriza la regla de oro: cronología antes que motivo.',
+      },
       xpType: 'grammar',
     },
     '¿Cómo confirmo una coartada?': {
-      reply: 'Con testigos, recibos y cámaras. Nunca solo con palabras.',
-      feedback: { isUnderstandable: true, xpAwarded: 10, explanation: 'Pregunta clave de método detectivesco.' },
+      reply:
+        'Con testigos cruzados, recibos sellados y serenos despiertos. Nunca solo con palabras: una declaración sin papel detrás se evapora antes del juicio. Y si alguien se ofrece como testigo demasiado pronto, sospecha doble.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 10,
+        explanation:
+          'Pregunta clave de método detectivesco — quédate con la última frase: «testigo demasiado pronto, sospecha doble».',
+      },
       xpType: 'investigation',
     },
+    '¿Tomamos huellas en el callejón?': {
+      reply:
+        'Ya las tomamos al amanecer, antes de que el barrio despertara. Hay tres juegos parciales: dos coinciden con clientes habituales del bar; el tercero es de un hombre con la mano grande y un anillo en el meñique. Ese es el que nos interesa.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 12,
+        explanation: 'Excelente: pregunta forense. Cruza el anillo del meñique con la descripción del camarero.',
+      },
+      xpType: 'investigation',
+    },
+    '¿Quién avisó a la policía?': {
+      reply:
+        'Una mujer anónima desde el teléfono público de la calle Argumosa. Voz joven, acento del sur. Colgó antes de dar nombre. La centralita lo registró a las cero horas y siete minutos. Si encuentras a esa mujer, encuentras a quien vio.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 11,
+        explanation: 'Pregunta de procedencia: la llamada anónima abre una línea nueva (teléfono, hora, voz, acento).',
+      },
+      xpType: 'vocabulary',
+    },
     '¿Puedes corregir mi frase?': {
-      reply: 'Sí: usa verbos en pasado para hechos cerrados.',
+      reply:
+        'Claro: usa el pretérito indefinido para hechos cerrados — «vi», «hablé», «encontré». El imperfecto («veía», «hablaba») suena a duda, y la duda no condena. Habla como quien firma un parte oficial.',
       feedback: {
         isUnderstandable: true,
         xpAwarded: 8,
-        explanation: 'Solicitar corrección activa acelera tu progreso.',
+        explanation: 'Solicitar corrección activa acelera tu progreso. Recuerda: indefinido para hechos cerrados.',
       },
       xpType: 'vocabulary',
     },

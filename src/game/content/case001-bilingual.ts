@@ -71,7 +71,8 @@ export const CASE_001_BILINGUAL_NPCS: Record<string, BilingualNpc> = {
   npc_lucia_vargas: {
     id: 'npc_lucia_vargas',
     roleEn: 'Prime suspect',
-    openingEn: 'I saw nothing that night. I was at home.',
+    openingEn:
+      'I saw nothing that night, detective. I was at home, alone, listening to the radio. If you must ask, ask quickly — the last set is waiting and Don Mauricio docks every minute from my pay.',
     tagline: 'Cantante de la taberna. Última en verle vivo.',
     taglineEn: 'Tavern singer. Last to see him alive.',
     portrait: '/assets/characters/npc_lucia_vargas.png',
@@ -79,7 +80,8 @@ export const CASE_001_BILINGUAL_NPCS: Record<string, BilingualNpc> = {
   npc_diego_torres: {
     id: 'npc_diego_torres',
     roleEn: 'Bartender',
-    openingEn: 'We close at midnight, but some customers stayed outside.',
+    openingEn:
+      'We close at midnight, but a few customers lingered outside, smoking under the awning. I was drying glasses with one hand and shoving drunks out with the other. Take from that everything and nothing, detective.',
     tagline: 'Cierra la barra. Lo ve todo, dice poco.',
     taglineEn: 'Closes the bar. Sees everything, says little.',
     portrait: '/assets/characters/npc_diego_torres.png',
@@ -87,7 +89,8 @@ export const CASE_001_BILINGUAL_NPCS: Record<string, BilingualNpc> = {
   npc_inspectora_ruiz: {
     id: 'npc_inspectora_ruiz',
     roleEn: 'Police mentor',
-    openingEn: 'You must connect witnesses, time, and physical evidence.',
+    openingEn:
+      "You must connect witnesses, time, and physical evidence. Every alibi breaks at its weakest link; your job isn't to smash it with a hammer — it's to find the crack and blow gently until it opens.",
     tagline: 'Veterana. Tu enlace en la jefatura.',
     taglineEn: 'Veteran. Your liaison at HQ.',
     portrait: '/assets/characters/npc_inspectora_ruiz.png',
@@ -100,23 +103,33 @@ export const CASE_001_BILINGUAL_REPLIES: Record<string, Record<string, Bilingual
     '¿Estabas sola?': {
       q: '¿Estabas sola?',
       qEn: 'Were you alone?',
-      aEn: 'Yes... alone. My flatmate was traveling.',
+      aEn: "Yes… completely alone. My flatmate Pilar has been in Salamanca caring for her mother since Monday. I don't expect visitors and I don't receive them: the doorwoman can confirm it — she grumbles even at carrying the milk upstairs.",
       statementValueEn: 'Lucía claims to have been alone at home',
     },
     '¿A qué hora llegaste a casa?': {
       q: '¿A qué hora llegaste a casa?',
       qEn: 'What time did you get home?',
-      aEn: 'Around half past ten... I think.',
+      aEn: 'Around half past ten… I think. I crossed the Plaza de Lavapiés, bought tobacco from the night watchman, and climbed three flights without turning on the light. After that, nothing: the national radio, a cup of linden tea, and to bed before eleven sharp.',
       statementValueEn: 'Lucía said she arrived at 22:30',
+    },
+    '¿Qué cantaste esa noche?': {
+      q: '¿Qué cantaste esa noche?',
+      qEn: 'What did you sing that night?',
+      aEn: '"Ojos verdes" and "La hija de don Juan Alba". The room was packed, even the walls were sweating. When you sing, detective, you don\'t think of anyone else — not what\'s happening outside, not what\'s owed at the bar.',
+    },
+    '¿Conocías al periodista?': {
+      q: '¿Conocías al periodista?',
+      qEn: 'Did you know the journalist?',
+      aEn: 'We crossed paths. Ramón came some nights to take notes — asking about songs, about the regulars. I poured him vermouth; he served me silence when he got too pushy. Nothing more, detective. Nothing more.',
     },
     'No entiendo.': {
       q: 'No entiendo.',
       qEn: "I don't understand.",
-      aEn: "I mean I didn't leave the house all night.",
+      aEn: "I mean I didn't leave the house all night. Not for the tobacco shop, not for bread, not to greet a neighbor. That's what I mean, detective — write it down word for word, and have me sign it.",
       correction: {
         from: 'No entiendo.',
         to: 'No lo entiendo.',
-        note: 'Añadir “lo” suena más natural.',
+        note: 'Añadir «lo» suena más natural en español peninsular.',
       },
     },
   },
@@ -124,34 +137,54 @@ export const CASE_001_BILINGUAL_REPLIES: Record<string, Record<string, Bilingual
     '¿Viste a Lucía?': {
       q: '¿Viste a Lucía?',
       qEn: 'Did you see Lucía?',
-      aEn: 'Yes, she left quickly and checked her watch repeatedly.',
+      aEn: 'Yes, I saw her leave in a hurry. She checked the wall clock two or three times before going, like someone who has an appointment and dreads it. She grabbed her coat off the rack, said goodbye to nobody, and went out through the alley door instead of the street.',
     },
     '¿Quién pagó la última ronda?': {
       q: '¿Quién pagó la última ronda?',
       qEn: 'Who paid the last round?',
-      aEn: 'A man in a grey coat. Not a regular.',
+      aEn: 'A man in a grey coat, suit cut by a tailor — not one of ours. He paid for two vermouths and a strong coffee, left a tip in large coins, and went out through the alley door. He smelled of hotel cologne, not neighborhood barber.',
+    },
+    '¿Hubo discusiones esa noche?': {
+      q: '¿Hubo discusiones esa noche?',
+      qEn: 'Were there any arguments that night?',
+      aEn: "One, at the back table: Ramón Quintero and a gentleman I'd never seen before. Low voices, raised fingers. When I came over with the seltzer, both fell silent at the same time. That kind of silence isn't served, detective; it's bought.",
+    },
+    'Describe al hombre del abrigo gris.': {
+      q: 'Describe al hombre del abrigo gris.',
+      qEn: 'Describe the man in the grey coat.',
+      aEn: "Tall, grey hair, well-kept hands — hands that don't chop firewood. Signet ring on the little finger. Hotel cologne, not barber's eau de toilette. The matchbook he left on the bar was from the Hotel Atocha. That, detective, is no longer coincidence.",
     },
     'Repítelo más despacio.': {
       q: 'Repítelo más despacio.',
       qEn: 'Repeat it more slowly.',
-      aEn: 'Sure: Lucía left alone at 23:40.',
+      aEn: 'Sure, no rush: Lu-cí-a left a-lone at e-le-ven for-ty. I checked the wall clock to be sure. I file it in my head just in case, detective; in this trade, minutes weigh more than banknotes.',
     },
   },
   npc_inspectora_ruiz: {
     '¿Qué debo preguntar primero?': {
       q: '¿Qué debo preguntar primero?',
       qEn: 'What should I ask first?',
-      aEn: 'Start with time, place, and company. That order reveals cracks.',
+      aEn: 'Start with the time, then the place, and finish with the company. That order reveals cracks: nobody invents all three at once without contradicting themselves on at least one. Write it in your notebook: chronology before motive.',
     },
     '¿Cómo confirmo una coartada?': {
       q: '¿Cómo confirmo una coartada?',
       qEn: 'How do I confirm an alibi?',
-      aEn: 'With witnesses, receipts, and cameras. Never with words alone.',
+      aEn: 'With cross-checked witnesses, stamped receipts, and awake night watchmen. Never with words alone: a statement without paper behind it evaporates before trial. And if someone offers themselves as a witness too quickly, double your suspicion.',
+    },
+    '¿Tomamos huellas en el callejón?': {
+      q: '¿Tomamos huellas en el callejón?',
+      qEn: 'Did we lift prints from the alley?',
+      aEn: "We lifted them at dawn, before the neighborhood woke up. We have three partial sets: two match regulars at the bar; the third is from a man with a large hand and a ring on the little finger. That's the one we want.",
+    },
+    '¿Quién avisó a la policía?': {
+      q: '¿Quién avisó a la policía?',
+      qEn: 'Who called the police?',
+      aEn: 'An anonymous woman from the public phone on Calle Argumosa. Young voice, southern accent. She hung up before giving a name. The switchboard logged it at zero hours and seven minutes. If you find that woman, you find someone who saw.',
     },
     '¿Puedes corregir mi frase?': {
       q: '¿Puedes corregir mi frase?',
       qEn: 'Can you correct my sentence?',
-      aEn: 'Yes: use past-tense verbs for closed facts.',
+      aEn: 'Of course: use the simple past for closed facts — "I saw", "I spoke", "I found". The imperfect ("I was seeing", "I was speaking") sounds like doubt, and doubt does not convict. Speak like someone signing an official report.',
     },
   },
 };
