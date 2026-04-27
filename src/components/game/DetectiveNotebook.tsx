@@ -1,7 +1,8 @@
 'use client';
 
+import { Es } from '@/components/newsprint/Es';
 import { MeterRow } from '@/components/newsprint/MeterRow';
-import { CASE_001_VOCABULARY } from '@/game/content/case001-bilingual';
+import { CASE_001_VOCABULARY, QUEST_BILINGUAL } from '@/game/content/case001-bilingual';
 import { useGameStore } from '@/store/useGameStore';
 
 export function DetectiveNotebook() {
@@ -54,10 +55,13 @@ export function DetectiveNotebook() {
 
       <div style={{ marginTop: 16 }}>
         <hr className="rule" />
-        <span className="kicker">Misiones</span>
+        <span className="kicker">
+          <Es es="Misiones" en="Quests" />
+        </span>
         <ul style={{ listStyle: 'none', padding: 0, margin: '6px 0 0' }}>
           {quests.map((q) => {
             const done = completedQuestIds.includes(q.id);
+            const en = QUEST_BILINGUAL[q.id];
             return (
               <li
                 key={q.id}
@@ -89,10 +93,10 @@ export function DetectiveNotebook() {
                       textDecoration: done ? 'line-through' : 'none',
                     }}
                   >
-                    {q.title}
+                    {en ? <Es es={q.title} en={en.title} /> : q.title}
                   </div>
                   <div className="body-serif" style={{ fontSize: 12 }}>
-                    {q.objective}
+                    {en ? <Es es={q.objective} en={en.objective} /> : q.objective}
                   </div>
                 </div>
               </li>

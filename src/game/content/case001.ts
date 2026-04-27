@@ -1,4 +1,5 @@
 import { type DialogueFeedback, type Lesson, type NpcProfile, type Quest } from '@/types/game';
+import { MERCEDES_NPC_PROFILE } from '@/game/content/case001-argumosa';
 
 type ReplyOutcome = {
   reply: string;
@@ -60,6 +61,7 @@ export const CASE_001_NPCS: NpcProfile[] = [
       '¿Puedes corregir mi frase?',
     ],
   },
+  MERCEDES_NPC_PROFILE,
 ];
 
 export const CASE_001_QUESTS: Quest[] = [

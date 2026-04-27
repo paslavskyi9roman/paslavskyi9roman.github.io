@@ -24,7 +24,15 @@ import {
   APARTMENT_NPC_PROFILES,
   APARTMENT_QUESTS,
 } from '@/game/content/case001-apartment';
-import { DEFAULT_LOCATION_ID, type LocationId } from '@/game/content/locations';
+import { ARGUMOSA_CLUE_CONTRADICTIONS, ARGUMOSA_NPC_PROFILES, ARGUMOSA_QUESTS } from '@/game/content/case001-argumosa';
+import {
+  DEFAULT_LOCATION_ID,
+  LOCATIONS,
+  LOCATION_ORDER,
+  LOCATION_REQUIRED_QUESTS,
+  isLocationUnlocked,
+  type LocationId,
+} from '@/game/content/locations';
 
 interface GameState {
   currentCaseId: string;
@@ -70,11 +78,12 @@ const ACCUSATION_SOLVED_XP = 25;
 const ACCUSATION_FAILED_XP = 5;
 const REQUIRED_CLUES_FOR_ACCUSATION = 3;
 
-const ALL_QUESTS: Quest[] = [...CASE_001_QUESTS, ...APARTMENT_QUESTS];
+const ALL_QUESTS: Quest[] = [...CASE_001_QUESTS, ...APARTMENT_QUESTS, ...ARGUMOSA_QUESTS];
 
 const ALL_CLUE_CONTRADICTIONS: Record<string, string[]> = {
   ...CASE_001_CLUE_CONTRADICTIONS,
   ...APARTMENT_CLUE_CONTRADICTIONS,
+  ...ARGUMOSA_CLUE_CONTRADICTIONS,
 };
 
 /**
@@ -85,6 +94,7 @@ const ALL_CLUE_CONTRADICTIONS: Record<string, string[]> = {
 const LOCATION_NPC_IDS: Record<LocationId, string[]> = {
   bar_interior: ['npc_lucia_vargas', 'npc_diego_torres', 'npc_inspectora_ruiz'],
   lucia_apartment: ['npc_lucia_vargas', 'npc_inspectora_ruiz'],
+  argumosa_kiosk: ['npc_mercedes_quintero', 'npc_inspectora_ruiz'],
 };
 
 const buildNpcsForLocation = (locationId: LocationId): NpcProfile[] => {
@@ -95,6 +105,12 @@ const buildNpcsForLocation = (locationId: LocationId): NpcProfile[] => {
     .map((base) => {
       if (locationId === 'lucia_apartment') {
         const override = APARTMENT_NPC_PROFILES[base.id];
+        if (override) {
+          return { ...base, openingLine: override.openingLine, quickReplies: override.quickReplies };
+        }
+      }
+      if (locationId === 'argumosa_kiosk') {
+        const override = ARGUMOSA_NPC_PROFILES[base.id];
         if (override) {
           return { ...base, openingLine: override.openingLine, quickReplies: override.quickReplies };
         }
@@ -206,6 +222,7 @@ export const useGameStore = create<GameState>()(
       setLocation: (locationId) => {
         const current = get().currentLocationId;
         if (current === locationId) return;
+        if (!isLocationUnlocked(locationId, get().completedQuestIds)) return;
         const npcs = buildNpcsForLocation(locationId);
         const previousSelectedId = get().selectedNpc?.id;
         const nextSelected = npcs.find((n) => n.id === previousSelectedId) ?? npcs[0] ?? null;
@@ -260,7 +277,39 @@ export const useGameStore = create<GameState>()(
       completeQuest: (questId) =>
         set((state) => {
           if (state.completedQuestIds.includes(questId)) return state;
-          return { completedQuestIds: [...state.completedQuestIds, questId] };
+          const completedQuestIds = [...state.completedQuestIds, questId];
+
+          const newlyUnlocked = LOCATION_ORDER.filter((locId) => {
+            if (locId === state.currentLocationId) return false;
+            const required = LOCATION_REQUIRED_QUESTS[locId];
+            if (required.length === 0) return false;
+            const wasUnlocked = required.every((q) => state.completedQuestIds.includes(q));
+            const nowUnlocked = required.every((q) => completedQuestIds.includes(q));
+            return !wasUnlocked && nowUnlocked;
+          });
+
+          if (newlyUnlocked.length === 0) {
+            return { completedQuestIds };
+          }
+
+          const now = Date.now();
+          const previousLocationName = LOCATIONS[state.currentLocationId].name.es;
+          const lines: DialogueMessage[] = newlyUnlocked.map((locId) => ({
+            speaker: 'system',
+            text: `¡Enhorabuena! Has completado la investigación en ${previousLocationName}. Procede a la siguiente ubicación: ${LOCATIONS[locId].name.es}.`,
+            timestamp: now,
+          }));
+          const nextLocationName = LOCATIONS[newlyUnlocked[0]!].name.es;
+
+          return {
+            completedQuestIds,
+            dialogueHistory: [...state.dialogueHistory, ...lines],
+            latestFeedback: {
+              isUnderstandable: true,
+              xpAwarded: 0,
+              explanation: `¡Enhorabuena! Has completado ${previousLocationName}. Procede a ${nextLocationName}.`,
+            },
+          };
         }),
       applyFeedback: (feedback, xpType) =>
         set((state) => ({
@@ -389,7 +438,11 @@ export const useGameStore = create<GameState>()(
       },
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        const npcs = buildNpcsForLocation(state.currentLocationId ?? DEFAULT_LOCATION_ID);
+        const persistedLocation = state.currentLocationId ?? DEFAULT_LOCATION_ID;
+        const completed = state.completedQuestIds ?? [];
+        const safeLocation = isLocationUnlocked(persistedLocation, completed) ? persistedLocation : DEFAULT_LOCATION_ID;
+        state.currentLocationId = safeLocation;
+        const npcs = buildNpcsForLocation(safeLocation);
         state.npcs = npcs;
         state.quests = ALL_QUESTS;
         state.selectedNpc = npcs[0] ?? null;

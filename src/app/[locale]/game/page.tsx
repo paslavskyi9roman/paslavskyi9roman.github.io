@@ -5,6 +5,7 @@ import { use, useState } from 'react';
 import { Masthead } from '@/components/newsprint/Masthead';
 import { AccusationOverlay } from '@/components/game/AccusationOverlay';
 import { ApartmentScene } from '@/components/game/ApartmentScene';
+import { ArgumosaScene } from '@/components/game/ArgumosaScene';
 import { BarScene } from '@/components/game/BarScene';
 import { BriefingModal } from '@/components/game/BriefingModal';
 import { CaseFile } from '@/components/game/CaseFile';
@@ -82,7 +83,13 @@ export default function GamePage({ params }: { params: Promise<{ locale: string 
         <DetectiveNotebook />
         <section>
           <LocationTabs />
-          {currentLocationId === 'lucia_apartment' ? <ApartmentScene /> : <BarScene />}
+          {currentLocationId === 'argumosa_kiosk' ? (
+            <ArgumosaScene />
+          ) : currentLocationId === 'lucia_apartment' ? (
+            <ApartmentScene />
+          ) : (
+            <BarScene />
+          )}
           <InterrogationPanel />
         </section>
         <CaseFile />

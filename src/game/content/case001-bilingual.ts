@@ -95,6 +95,15 @@ export const CASE_001_BILINGUAL_NPCS: Record<string, BilingualNpc> = {
     taglineEn: 'Veteran. Your liaison at HQ.',
     portrait: '/assets/characters/npc_inspectora_ruiz.png',
   },
+  npc_mercedes_quintero: {
+    id: 'npc_mercedes_quintero',
+    roleEn: "Ramón's sister · newspaper vendor",
+    openingEn:
+      "Detective… I was expecting you. I knew sooner or later you'd trace the phone. I just… I wanted to do what my brother would have done. Make the call. Say what I saw. Even with my hands shaking.",
+    tagline: 'Hermana de Ramón. La voz de la cabina.',
+    taglineEn: "Ramón's sister. The voice from the phone box.",
+    portrait: '/assets/characters/npc_mercedes_quintero.png',
+  },
 };
 
 /** Lookup by NPC + Spanish quick-reply text → English translation + correction. */
@@ -240,10 +249,63 @@ export const CASE_001_VOCABULARY: VocabularyEntry[] = [
   { es: 'carmín', en: 'red lipstick' },
 ];
 
-export const CASE_001_QUEST_TRANSLATIONS: Record<string, string> = {
-  q1: 'Verify the alibi',
-  q2: 'Reconstruct the route',
-  q3: 'Chain of witnesses',
+/**
+ * English translations for each lesson capsule (title + tip). Consumed by
+ * the CaseFile so hover-translate works on the right-hand sidebar.
+ */
+export const LESSON_BILINGUAL: Record<string, { title: string; tip: string }> = {
+  l1: {
+    title: 'Time questions',
+    tip: 'Use "¿A qué hora...?" to detect inconsistencies.',
+  },
+  l2: {
+    title: 'Natural clarity',
+    tip: '"No lo entiendo" sounds more natural than "No entiendo".',
+  },
+  l3: {
+    title: 'Police vocabulary',
+    tip: 'Practice: testigo, coartada, pista, declaración.',
+  },
+};
+
+/**
+ * English translations for each quest's title and objective. Consumed by the
+ * DetectiveNotebook so the player can hover any quest line to read the
+ * meaning while staying immersed in Spanish.
+ */
+export const QUEST_BILINGUAL: Record<string, { title: string; objective: string }> = {
+  q1: {
+    title: 'Verify the alibi',
+    objective: 'Talk to Lucía and uncover a timeline contradiction.',
+  },
+  q2: {
+    title: 'Reconstruct the route',
+    objective: 'Find 2 physical clues at the scene.',
+  },
+  q3: {
+    title: 'Chain of witnesses',
+    objective: "Question the bartender and cross-check his statement with Lucía's.",
+  },
+  q4: {
+    title: 'Search the apartment',
+    objective: "Find at least 2 physical clues in Lucía's flat.",
+  },
+  q5: {
+    title: 'Weave the contradictions',
+    objective: 'Provoke at least one new contradiction while questioning Lucía at her flat.',
+  },
+  q6: {
+    title: 'Locate the witness',
+    objective: 'Find at least 2 clues at the Argumosa newsstand.',
+  },
+  q7: {
+    title: 'Take her statement',
+    objective: 'Record at least one statement from Mercedes Quintero.',
+  },
+  q8: {
+    title: 'Close the circle',
+    objective: 'Provoke at least one new contradiction against Lucía here.',
+  },
 };
 
 export const CASE_001_TICKER: string[] = [
