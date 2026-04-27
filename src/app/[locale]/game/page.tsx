@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { use, useState } from 'react';
 import { Masthead } from '@/components/newsprint/Masthead';
 import { AccusationOverlay } from '@/components/game/AccusationOverlay';
+import { ApartmentScene } from '@/components/game/ApartmentScene';
 import { BarScene } from '@/components/game/BarScene';
 import { BriefingModal } from '@/components/game/BriefingModal';
 import { CaseFile } from '@/components/game/CaseFile';
 import { ClueJournal } from '@/components/game/ClueJournal';
 import { DetectiveNotebook } from '@/components/game/DetectiveNotebook';
 import { InterrogationPanel } from '@/components/game/InterrogationPanel';
+import { LocationTabs } from '@/components/game/LocationTabs';
 import { useGameStore } from '@/store/useGameStore';
 
 export default function GamePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -18,6 +20,7 @@ export default function GamePage({ params }: { params: Promise<{ locale: string 
   const [accusationOpen, setAccusationOpen] = useState(false);
   const casePhase = useGameStore((state) => state.casePhase);
   const contradictionsCount = useGameStore((state) => state.contradictions.length);
+  const currentLocationId = useGameStore((state) => state.currentLocationId);
 
   const accusationEnabled = casePhase === 'accusation' || casePhase === 'resolved';
 
@@ -78,7 +81,8 @@ export default function GamePage({ params }: { params: Promise<{ locale: string 
       >
         <DetectiveNotebook />
         <section>
-          <BarScene />
+          <LocationTabs />
+          {currentLocationId === 'lucia_apartment' ? <ApartmentScene /> : <BarScene />}
           <InterrogationPanel />
         </section>
         <CaseFile />

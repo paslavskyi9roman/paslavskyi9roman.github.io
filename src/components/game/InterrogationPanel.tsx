@@ -3,8 +3,12 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { DialogueLine } from '@/components/newsprint/DialogueLine';
 import { NewsprintPhoto } from '@/components/newsprint/NewsprintPhoto';
-import { CASE_001_BILINGUAL_NPCS, CASE_001_BILINGUAL_REPLIES } from '@/game/content/case001-bilingual';
-import { NPC_OUTCOMES } from '@/game/content/case001';
+import {
+  ALL_BILINGUAL_REPLIES,
+  ALL_NPC_OUTCOMES,
+  APARTMENT_STATEMENT_IDS,
+  getBilingualNpc,
+} from '@/game/content/case001-merged';
 import { DialogueResponseSchema } from '@/lib/dialogue/schema';
 import { useGameStore } from '@/store/useGameStore';
 import type { DialogueMessage } from '@/types/game';
@@ -12,15 +16,18 @@ import type { DialogueMessage } from '@/types/game';
 export function InterrogationPanel() {
   const {
     currentCaseId,
+    currentLocationId,
     dialogueHistory,
     selectedNpc,
     npcs,
+    usedQuickReplies,
     selectNpcById,
     addPlayerLine,
     addNpcLine,
     addSystemLine,
     applyFeedback,
     recordStatement,
+    recordUsedReply,
     completeQuest,
   } = useGameStore();
   const [freeText, setFreeText] = useState('');
@@ -35,8 +42,13 @@ export function InterrogationPanel() {
 
   const usedReplies = useMemo(() => {
     if (!selectedNpc) return new Set<string>();
-    return new Set(dialogueHistory.filter((line) => line.speaker === 'player').map((line) => line.text));
-  }, [dialogueHistory, selectedNpc]);
+    return new Set(usedQuickReplies[selectedNpc.id] ?? []);
+  }, [usedQuickReplies, selectedNpc]);
+
+  const availableQuickReplies = useMemo(() => {
+    if (!selectedNpc) return [] as readonly string[];
+    return selectedNpc.quickReplies.filter((q) => !usedReplies.has(q));
+  }, [selectedNpc, usedReplies]);
 
   const visibleLines = useMemo(() => {
     if (!selectedNpc) return [] as DialogueMessage[];
@@ -47,12 +59,15 @@ export function InterrogationPanel() {
 
   const handleQuickReply = (replyText: string) => {
     if (!selectedNpc) return;
-    const outcome = NPC_OUTCOMES[selectedNpc.id]?.[replyText];
+    const outcome = ALL_NPC_OUTCOMES[selectedNpc.id]?.[replyText];
     if (!outcome) return;
+
+    const contradictionsBefore = useGameStore.getState().contradictions.length;
 
     addPlayerLine(replyText);
     addNpcLine(outcome.reply, { id: selectedNpc.id, name: selectedNpc.name });
     applyFeedback(outcome.feedback, outcome.xpType);
+    recordUsedReply(selectedNpc.id, replyText);
 
     if (outcome.statement) {
       recordStatement({ ...outcome.statement, npcId: selectedNpc.id, sourceReply: replyText });
@@ -63,6 +78,19 @@ export function InterrogationPanel() {
     }
     if (selectedNpc.id === 'npc_diego_torres' && replyText === '¿Quién pagó la última ronda?') {
       completeQuest('q3');
+    }
+
+    // q5: an apartment-borne statement that just produced a fresh contradiction.
+    if (
+      currentLocationId === 'lucia_apartment' &&
+      selectedNpc.id === 'npc_lucia_vargas' &&
+      outcome.statement &&
+      APARTMENT_STATEMENT_IDS.has(outcome.statement.id)
+    ) {
+      const contradictionsAfter = useGameStore.getState().contradictions.length;
+      if (contradictionsAfter > contradictionsBefore) {
+        completeQuest('q5');
+      }
     }
   };
 
@@ -110,8 +138,8 @@ export function InterrogationPanel() {
     }
   };
 
-  const npcBilingual = selectedNpc ? CASE_001_BILINGUAL_NPCS[selectedNpc.id] : undefined;
-  const replyTranslations = selectedNpc ? CASE_001_BILINGUAL_REPLIES[selectedNpc.id] : undefined;
+  const npcBilingual = selectedNpc ? getBilingualNpc(selectedNpc.id, currentLocationId) : undefined;
+  const replyTranslations = selectedNpc ? ALL_BILINGUAL_REPLIES[selectedNpc.id] : undefined;
 
   return (
     <div
@@ -224,13 +252,13 @@ export function InterrogationPanel() {
             // player quick-replies and NPC replies use bilingual reply table.
             let en: string | undefined;
             if (selectedNpc) {
-              const replies = CASE_001_BILINGUAL_REPLIES[selectedNpc.id];
+              const replies = ALL_BILINGUAL_REPLIES[selectedNpc.id];
               if (role === 'player' && replies?.[line.text]) {
                 en = replies[line.text]?.qEn;
               } else if (role === 'npc') {
-                const opening = CASE_001_BILINGUAL_NPCS[line.npcId ?? '']?.openingEn;
+                const opening = getBilingualNpc(line.npcId ?? '', currentLocationId)?.openingEn;
                 const replyEntry = Object.values(replies ?? {}).find(
-                  (r) => NPC_OUTCOMES[selectedNpc.id]?.[r.q]?.reply === line.text,
+                  (r) => ALL_NPC_OUTCOMES[selectedNpc.id]?.[r.q]?.reply === line.text,
                 );
                 en = replyEntry?.aEn ?? opening;
               }
@@ -253,25 +281,27 @@ export function InterrogationPanel() {
         >
           <span className="byline">Posibles preguntas</span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-            {selectedNpc.quickReplies.map((q) => {
-              const used = usedReplies.has(q);
+            {availableQuickReplies.length === 0 && (
+              <p className="byline" style={{ fontStyle: 'italic', color: 'var(--ink-faded)', margin: 0 }}>
+                Has agotado las preguntas guiadas. Continúa el interrogatorio en texto libre.
+              </p>
+            )}
+            {availableQuickReplies.map((q) => {
               const qEn = replyTranslations?.[q]?.qEn;
               return (
                 <button
                   key={q}
                   type="button"
                   onClick={() => handleQuickReply(q)}
-                  disabled={used}
                   title={qEn}
                   style={{
                     fontFamily: 'var(--body)',
                     fontSize: 13,
                     padding: '6px 12px',
                     border: '1px solid var(--ink)',
-                    background: used ? 'var(--paper-deep)' : 'var(--paper)',
-                    color: used ? 'var(--ink-faded)' : 'var(--ink)',
-                    cursor: used ? 'default' : 'pointer',
-                    textDecoration: used ? 'line-through' : 'none',
+                    background: 'var(--paper)',
+                    color: 'var(--ink)',
+                    cursor: 'pointer',
                     fontStyle: 'italic',
                   }}
                 >
