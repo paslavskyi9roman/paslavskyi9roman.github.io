@@ -46,6 +46,8 @@ interface GameState {
   recordedStatements: NpcStatement[];
   contradictions: ContradictionRecord[];
   briefingSeen: boolean;
+  /** Per-NPC list of quick-reply texts the player has already used. */
+  usedQuickReplies: Record<string, string[]>;
   startNpcDialogue: (npc: NpcProfile) => void;
   selectNpcById: (npcId: string) => void;
   setLocation: (locationId: LocationId) => void;
@@ -56,12 +58,13 @@ interface GameState {
   completeQuest: (questId: string) => void;
   applyFeedback: (feedback: DialogueFeedback, xpType: 'vocabulary' | 'grammar' | 'investigation') => void;
   recordStatement: (statement: Omit<NpcStatement, 'recordedAt'>) => void;
+  recordUsedReply: (npcId: string, replyText: string) => void;
   dismissBriefing: () => void;
   accuse: (npcId: string, supportingContradictionIds: string[]) => void;
 }
 
 const STORAGE_KEY = 'madrid-noir-v1';
-const STORAGE_VERSION = 3;
+const STORAGE_VERSION = 4;
 
 const ACCUSATION_SOLVED_XP = 25;
 const ACCUSATION_FAILED_XP = 5;
@@ -187,6 +190,7 @@ export const useGameStore = create<GameState>()(
       recordedStatements: [],
       contradictions: [],
       briefingSeen: false,
+      usedQuickReplies: {},
       startNpcDialogue: (npc) =>
         set({
           selectedNpc: npc,
@@ -265,6 +269,17 @@ export const useGameStore = create<GameState>()(
           grammarXp: state.grammarXp + (xpType === 'grammar' ? feedback.xpAwarded : 0),
           investigationXp: state.investigationXp + (xpType === 'investigation' ? feedback.xpAwarded : 0),
         })),
+      recordUsedReply: (npcId, replyText) =>
+        set((state) => {
+          const existing = state.usedQuickReplies[npcId] ?? [];
+          if (existing.includes(replyText)) return state;
+          return {
+            usedQuickReplies: {
+              ...state.usedQuickReplies,
+              [npcId]: [...existing, replyText],
+            },
+          };
+        }),
       recordStatement: (statement) =>
         set((state) => {
           if (state.recordedStatements.find((existing) => existing.id === statement.id)) {
@@ -342,6 +357,7 @@ export const useGameStore = create<GameState>()(
         recordedStatements: state.recordedStatements,
         contradictions: state.contradictions,
         briefingSeen: state.briefingSeen,
+        usedQuickReplies: state.usedQuickReplies,
       }),
       migrate: (persistedState, version) => {
         const base = (persistedState ?? {}) as Partial<GameState>;
@@ -361,6 +377,12 @@ export const useGameStore = create<GameState>()(
           next = {
             ...next,
             currentLocationId: DEFAULT_LOCATION_ID,
+          };
+        }
+        if (version < 4) {
+          next = {
+            ...next,
+            usedQuickReplies: {},
           };
         }
         return next;

@@ -20,12 +20,14 @@ export function InterrogationPanel() {
     dialogueHistory,
     selectedNpc,
     npcs,
+    usedQuickReplies,
     selectNpcById,
     addPlayerLine,
     addNpcLine,
     addSystemLine,
     applyFeedback,
     recordStatement,
+    recordUsedReply,
     completeQuest,
   } = useGameStore();
   const [freeText, setFreeText] = useState('');
@@ -40,8 +42,13 @@ export function InterrogationPanel() {
 
   const usedReplies = useMemo(() => {
     if (!selectedNpc) return new Set<string>();
-    return new Set(dialogueHistory.filter((line) => line.speaker === 'player').map((line) => line.text));
-  }, [dialogueHistory, selectedNpc]);
+    return new Set(usedQuickReplies[selectedNpc.id] ?? []);
+  }, [usedQuickReplies, selectedNpc]);
+
+  const availableQuickReplies = useMemo(() => {
+    if (!selectedNpc) return [] as readonly string[];
+    return selectedNpc.quickReplies.filter((q) => !usedReplies.has(q));
+  }, [selectedNpc, usedReplies]);
 
   const visibleLines = useMemo(() => {
     if (!selectedNpc) return [] as DialogueMessage[];
@@ -60,6 +67,7 @@ export function InterrogationPanel() {
     addPlayerLine(replyText);
     addNpcLine(outcome.reply, { id: selectedNpc.id, name: selectedNpc.name });
     applyFeedback(outcome.feedback, outcome.xpType);
+    recordUsedReply(selectedNpc.id, replyText);
 
     if (outcome.statement) {
       recordStatement({ ...outcome.statement, npcId: selectedNpc.id, sourceReply: replyText });
@@ -273,25 +281,27 @@ export function InterrogationPanel() {
         >
           <span className="byline">Posibles preguntas</span>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-            {selectedNpc.quickReplies.map((q) => {
-              const used = usedReplies.has(q);
+            {availableQuickReplies.length === 0 && (
+              <p className="byline" style={{ fontStyle: 'italic', color: 'var(--ink-faded)', margin: 0 }}>
+                Has agotado las preguntas guiadas. Continúa el interrogatorio en texto libre.
+              </p>
+            )}
+            {availableQuickReplies.map((q) => {
               const qEn = replyTranslations?.[q]?.qEn;
               return (
                 <button
                   key={q}
                   type="button"
                   onClick={() => handleQuickReply(q)}
-                  disabled={used}
                   title={qEn}
                   style={{
                     fontFamily: 'var(--body)',
                     fontSize: 13,
                     padding: '6px 12px',
                     border: '1px solid var(--ink)',
-                    background: used ? 'var(--paper-deep)' : 'var(--paper)',
-                    color: used ? 'var(--ink-faded)' : 'var(--ink)',
-                    cursor: used ? 'default' : 'pointer',
-                    textDecoration: used ? 'line-through' : 'none',
+                    background: 'var(--paper)',
+                    color: 'var(--ink)',
+                    cursor: 'pointer',
                     fontStyle: 'italic',
                   }}
                 >
