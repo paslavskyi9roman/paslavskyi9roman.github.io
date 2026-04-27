@@ -6,10 +6,9 @@ Madrid Noir is a browser-based 2D detective RPG where Spanish is the core gamepl
 
 - Next.js (App Router)
 - React + TypeScript (strict)
-- Phaser (2D scene layer)
 - Zustand (local game state)
 - Supabase JS client (auth/data-ready setup)
-- Tailwind CSS (UI styling)
+- Tailwind CSS + custom newsprint design system (1950s Spanish front page)
 
 ## Routes
 
@@ -44,13 +43,13 @@ Madrid Noir is a browser-based 2D detective RPG where Spanish is the core gamepl
 
 ## MVP currently works
 
-- Noir-styled landing page and navigation.
-- `/game` shows a Phaser investigation scene with:
-  - detective placeholder
-  - NPC placeholder (Lucía Vargas)
-  - clickable clue placeholder
-- Dialogue overlay with required Spanish opening line and quick responses.
-- Free-form Spanish input posts to `/api/dialogue-feedback`.
+- Newsprint-styled landing page (Diario de la Noche front page) with hover-translate Spanish phrases.
+- `/game` renders the Lavapiés bar interior as a halftone newspaper photograph with:
+  - clickable red clue dots overlaid on the scene
+  - three-column newspaper layout (HUD · scene + interrogation · case file)
+  - NPC tabs (Lucía, Diego, Inspectora Ruiz) with Spanish quick replies
+  - free-form Spanish input that posts to `/api/dialogue-feedback`
+- Briefing telegram, clue journal evidence board, and verdict edition modals.
 - Deterministic feedback + XP award flow.
 - Zustand store tracks:
   - vocabulary XP
@@ -59,6 +58,7 @@ Madrid Noir is a browser-based 2D detective RPG where Spanish is the core gamepl
   - current case ID
   - discovered clues
   - dialogue history
+  - recorded statements + auto-detected contradictions
 
 ## Mocked / placeholder behavior
 

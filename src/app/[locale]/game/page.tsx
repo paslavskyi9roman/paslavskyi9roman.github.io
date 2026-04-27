@@ -1,15 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
+import { use, useState } from 'react';
+import { Masthead } from '@/components/newsprint/Masthead';
 import { AccusationOverlay } from '@/components/game/AccusationOverlay';
+import { BarScene } from '@/components/game/BarScene';
 import { BriefingModal } from '@/components/game/BriefingModal';
+import { CaseFile } from '@/components/game/CaseFile';
 import { ClueJournal } from '@/components/game/ClueJournal';
-import { DialogueOverlay } from '@/components/game/DialogueOverlay';
-import { GameCanvas } from '@/components/game/GameCanvas';
-import { ProgressPanel } from '@/components/game/ProgressPanel';
+import { DetectiveNotebook } from '@/components/game/DetectiveNotebook';
+import { InterrogationPanel } from '@/components/game/InterrogationPanel';
 import { useGameStore } from '@/store/useGameStore';
 
-export default function GamePage() {
+export default function GamePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = use(params);
   const [journalOpen, setJournalOpen] = useState(false);
   const [accusationOpen, setAccusationOpen] = useState(false);
   const casePhase = useGameStore((state) => state.casePhase);
@@ -18,38 +22,91 @@ export default function GamePage() {
   const accusationEnabled = casePhase === 'accusation' || casePhase === 'resolved';
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="paper" style={{ minHeight: '100vh', padding: '0 32px 40px' }}>
+      <Masthead small />
+
+      <div
+        className="flex items-end justify-between"
+        style={{
+          borderTop: '3px solid var(--ink)',
+          borderBottom: '1px solid var(--ink)',
+          padding: '10px 0',
+          marginBottom: 14,
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
         <div>
-          <h1 className="text-2xl font-semibold">Caso 001: Noche en Lavapiés — Investigación ampliada</h1>
-          <p className="text-sm text-slate-300">
-            3 NPC, 3 misiones, múltiples pistas y cápsulas de lección para escalar el caso horizontalmente.
+          <span className="kicker">Expediente Nº 001 · Lavapiés</span>
+          <h2 className="headline" style={{ fontSize: 38, marginTop: 2 }}>
+            Una Noche en <em style={{ fontStyle: 'italic', color: 'var(--red-deep)' }}>Lavapiés</em>
+          </h2>
+          <p className="byline" style={{ marginTop: 2 }}>
+            Por el Detective · 14·X·1953
           </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setJournalOpen(true)}
-            className="rounded-md border border-slate-600 px-3 py-1.5 text-sm hover:bg-noir-800"
-          >
-            Diario {contradictionsCount > 0 ? `(${contradictionsCount} ⚡)` : ''}
+        <div className="flex gap-3 items-center">
+          <button type="button" onClick={() => setJournalOpen(true)} className="btn-ghost">
+            Diario{' '}
+            {contradictionsCount > 0 && (
+              <span style={{ color: 'var(--red)', marginLeft: 6 }}>⚡{contradictionsCount}</span>
+            )}
           </button>
           <button
+            type="button"
             onClick={() => setAccusationOpen(true)}
             disabled={!accusationEnabled}
-            className="rounded-md bg-amber-400 px-3 py-1.5 text-sm font-medium text-noir-950 hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-red"
+            style={{
+              opacity: !accusationEnabled ? 0.5 : 1,
+              cursor: !accusationEnabled ? 'not-allowed' : 'pointer',
+            }}
           >
-            {casePhase === 'resolved' ? 'Ver veredicto' : 'Acusar'}
+            {casePhase === 'resolved' ? 'Ver veredicto' : 'Acusar formalmente'}
           </button>
         </div>
       </div>
-      <div className="relative overflow-hidden rounded-xl border border-slate-800 bg-black">
-        <GameCanvas />
-        <DialogueOverlay />
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1.4fr 1fr',
+          gap: 22,
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        <DetectiveNotebook />
+        <section>
+          <BarScene />
+          <InterrogationPanel />
+        </section>
+        <CaseFile />
       </div>
-      <ProgressPanel />
+
       <BriefingModal />
       <ClueJournal open={journalOpen} onClose={() => setJournalOpen(false)} />
       <AccusationOverlay open={accusationOpen} onClose={() => setAccusationOpen(false)} />
-    </section>
+
+      <Link
+        href={`/${locale}`}
+        style={{
+          position: 'fixed',
+          top: 12,
+          left: 12,
+          zIndex: 90,
+          background: 'var(--ink)',
+          color: 'var(--paper)',
+          textDecoration: 'none',
+          padding: '6px 12px',
+          fontFamily: 'var(--sans)',
+          fontSize: 10,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+        }}
+      >
+        ← Portada
+      </Link>
+    </div>
   );
 }

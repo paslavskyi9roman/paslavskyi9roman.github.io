@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import '../globals.css';
 import { type AppLocale, isAppLocale, locales } from '@/i18n/config';
@@ -15,11 +14,6 @@ const localizedMeta: Record<AppLocale, { title: string; description: string }> =
     title: 'Madrid Noir — Spanish-learning detective RPG',
     description: 'Learn Spanish by solving cases in a noir detective RPG set in 1950s Madrid.',
   },
-};
-
-const labels: Record<AppLocale, { game: string; dashboard: string; login: string }> = {
-  es: { game: 'Juego', dashboard: 'Panel', login: 'Iniciar sesión' },
-  en: { game: 'Game', dashboard: 'Dashboard', login: 'Login' },
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -58,25 +52,18 @@ export default async function RootLayout({
     notFound();
   }
 
-  const t = labels[locale];
-
   return (
     <html lang={locale}>
-      <body>
-        <header className="border-b border-slate-800 bg-noir-900/80">
-          <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 text-sm">
-            <Link href={`/${locale}`} className="font-semibold tracking-wide text-amber-300">
-              Madrid Noir
-            </Link>
-            <div className="flex gap-4 text-slate-300">
-              <Link href={`/${locale}/game`}>{t.game}</Link>
-              <Link href={`/${locale}/dashboard`}>{t.dashboard}</Link>
-              <Link href={`/${locale}/login`}>{t.login}</Link>
-            </div>
-          </nav>
-        </header>
-        <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
-      </body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,700;1,900&family=Oswald:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Special+Elite&family=Caveat:wght@500;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }

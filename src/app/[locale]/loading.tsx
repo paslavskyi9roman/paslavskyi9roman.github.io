@@ -1,12 +1,41 @@
 export default function LocaleLoading() {
   return (
-    <section className="space-y-6">
-      <div className="panel p-8">
-        <p className="text-xs uppercase tracking-[0.25em] text-amber-300">Cargando expediente…</p>
-        <div className="mt-4 h-2 w-full max-w-sm overflow-hidden rounded-full bg-slate-800">
-          <div className="h-full w-1/3 animate-pulse rounded-full bg-amber-400" />
+    <div className="paper" style={{ minHeight: '100vh', padding: '60px 60px 40px' }}>
+      <div
+        style={{
+          maxWidth: 480,
+          margin: '0 auto',
+          padding: 18,
+          border: '1px solid var(--ink)',
+          background: 'var(--paper-shadow)',
+          textAlign: 'center',
+        }}
+      >
+        <span className="kicker">Cargando expediente…</span>
+        <div
+          style={{
+            marginTop: 14,
+            height: 10,
+            border: '1px solid var(--ink)',
+            background: 'var(--paper)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: '40%',
+              background: 'var(--red)',
+              backgroundImage: 'repeating-linear-gradient(45deg, transparent 0 3px, rgba(255,255,255,0.08) 3px 6px)',
+              animation: 'fadeIn 0.4s ease-in-out infinite alternate',
+            }}
+          />
         </div>
       </div>
-    </section>
+    </div>
   );
 }
