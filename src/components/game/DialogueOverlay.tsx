@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { DialogueFeedback, DialogueMessage } from '@/types/game';
-import { NPC_OUTCOMES } from '@/game/content/case001';
+import { CASE_001_ROUTE_QUEST_REQUIRED_CLUES, NPC_OUTCOMES } from '@/game/content/case001';
 
 export function DialogueOverlay() {
   const { currentCaseId, dialogueHistory, selectedNpc, npcs, selectNpcById, addPlayerLine, addNpcLine, addSystemLine, addClue, completeQuest, applyFeedback } =
@@ -32,9 +32,19 @@ export function DialogueOverlay() {
   useEffect(() => {
     const onClue = (event: Event) => {
       const customEvent = event as CustomEvent<{ id: string; title: string; description: string }>;
+
+      const { discoveredClues } = useGameStore.getState();
+      const clueAlreadyDiscovered = discoveredClues.some((clue) => clue.id === customEvent.detail.id);
+      if (clueAlreadyDiscovered) {
+        return;
+      }
+
       addClue(customEvent.detail);
+      const nextDiscoveredCount = useGameStore.getState().discoveredClues.length;
       addNpcLine('¿Encontraste algo? Esa pista cambia la línea temporal.');
-      completeQuest('q2');
+      if (nextDiscoveredCount >= CASE_001_ROUTE_QUEST_REQUIRED_CLUES) {
+        completeQuest('q2');
+      }
       applyFeedback(
         { isUnderstandable: true, xpAwarded: 12, explanation: 'Encontraste una pista clave en la escena.' },
         'investigation',
@@ -51,10 +61,10 @@ export function DialogueOverlay() {
       window.removeEventListener('madrid-noir:clue-found', onClue);
       window.removeEventListener('madrid-noir:npc-selected', onNpcSelected);
     };
-  }, [addClue, addNpcLine, applyFeedback, completeQuest, selectNpcById]);
+  }, [addClue, addNpcLine, applyFeedback, completeQuest, selectNpcById, selectedNpc]);
 
   const helper = useMemo(
-    () => 'Support hint (EN/UK): Ask precise timeline questions to reveal contradictions. / Підказка: уточнюй час, щоб знайти суперечності.',
+    () => 'Nota bilingüe intencional (ES/EN): pregunta por horarios concretos para revelar contradicciones. / Intentional bilingual hint (ES/EN): ask precise timeline questions to reveal contradictions.',
     [],
   );
 
@@ -63,7 +73,7 @@ export function DialogueOverlay() {
     addPlayerLine(text);
     const outcome = NPC_OUTCOMES[selectedNpc.id]?.[text];
     if (!outcome) return;
-    addNpcLine(outcome.reply);
+    addNpcLine(outcome.reply, { id: selectedNpc.id, name: selectedNpc.name });
     applyFeedback(outcome.feedback, outcome.xpType);
     if (selectedNpc.id === 'npc_lucia_vargas' && text === '¿A qué hora llegaste a casa?') {
       completeQuest('q1');
@@ -123,7 +133,7 @@ export function DialogueOverlay() {
 
   return (
     <aside className="pointer-events-auto absolute bottom-0 left-0 right-0 m-3 rounded-xl border border-slate-700 bg-noir-900/95 p-4">
-      <p className="text-xs uppercase tracking-widest text-amber-300">Interrogation</p>
+      <p className="text-xs uppercase tracking-widest text-amber-300">Interrogatorio</p>
       <h2 className="text-lg font-semibold">{selectedNpc?.name ?? 'Selecciona un NPC'}</h2>
       <p className="mt-1 text-sm text-slate-300">{helper}</p>
       <div className="mt-2 flex flex-wrap gap-2">

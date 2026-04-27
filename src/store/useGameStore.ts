@@ -41,7 +41,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   startNpcDialogue: (npc) =>
     set({
       selectedNpc: npc,
-      dialogueHistory: [{ speaker: 'npc', text: npc.openingLine, timestamp: Date.now() }],
+      dialogueHistory: [{ speaker: 'npc', text: npc.openingLine, timestamp: Date.now(), npcId: npc.id, npcName: npc.name }],
     }),
   selectNpcById: (npcId) => {
     const npc = get().npcs.find((profile) => profile.id === npcId);
@@ -52,9 +52,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     set((state) => ({
       dialogueHistory: [...state.dialogueHistory, { speaker: 'player', text, timestamp: Date.now() }],
     })),
-  addNpcLine: (text) =>
+  addNpcLine: (text, npc) =>
     set((state) => ({
-      dialogueHistory: [...state.dialogueHistory, { speaker: 'npc', text, timestamp: Date.now() }],
+      dialogueHistory: [...state.dialogueHistory, { speaker: 'npc', text, timestamp: Date.now(), npcId: npc?.id, npcName: npc?.name }],
     })),
   addSystemLine: (text) =>
     set((state) => ({
