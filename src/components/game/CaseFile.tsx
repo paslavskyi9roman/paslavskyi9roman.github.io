@@ -37,10 +37,10 @@ export function CaseFile() {
       </div>
 
       <NewsprintPhoto
-        src="/assets/characters/detective.png"
-        alt="Detective archivo"
+        src="/assets/characters/npc_ramon_quintero.png"
+        alt={CASE_001_VICTIM.name}
         height={140}
-        caption="DET. CRESPO · Brigada Nocturna"
+        caption={`${CASE_001_VICTIM.name.toUpperCase()} · ${CASE_001_VICTIM.role.es.toUpperCase()}`}
       />
 
       <div
