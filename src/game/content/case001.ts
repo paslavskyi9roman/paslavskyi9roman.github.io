@@ -39,6 +39,8 @@ export const CASE_001_QUESTS: Quest[] = [
   { id: 'q3', title: 'Cadena de testimonios', objective: 'Interroga al camarero y cruza su declaración con la de Lucía.', rewardXp: 40 },
 ];
 
+export const CASE_001_ROUTE_QUEST_REQUIRED_CLUES = 2;
+
 export const CASE_001_LESSONS: Lesson[] = [
   { id: 'l1', title: 'Preguntas de tiempo', tip: 'Usa “¿A qué hora...?” para detectar incoherencias.', xpType: 'investigation' },
   { id: 'l2', title: 'Claridad natural', tip: '“No lo entiendo” suena más natural que “No entiendo”.', xpType: 'grammar' },
@@ -103,4 +105,3 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
     },
   },
 };
-

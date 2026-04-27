@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '@/store/useGameStore';
 import { DialogueFeedback, DialogueMessage } from '@/types/game';
-import { NPC_OUTCOMES } from '@/game/content/case001';
+import { CASE_001_ROUTE_QUEST_REQUIRED_CLUES, NPC_OUTCOMES } from '@/game/content/case001';
 
 export function DialogueOverlay() {
   const { currentCaseId, dialogueHistory, selectedNpc, npcs, selectNpcById, addPlayerLine, addNpcLine, addClue, completeQuest, applyFeedback } =
@@ -30,7 +30,7 @@ export function DialogueOverlay() {
       addClue(customEvent.detail);
       const nextDiscoveredCount = useGameStore.getState().discoveredClues.length;
       addNpcLine('¿Encontraste algo? Esa pista cambia la línea temporal.');
-      if (nextDiscoveredCount >= 2) {
+      if (nextDiscoveredCount >= CASE_001_ROUTE_QUEST_REQUIRED_CLUES) {
         completeQuest('q2');
       }
       applyFeedback(
