@@ -1,3 +1,5 @@
+import { AudioControl } from '@/components/AudioControl';
+
 interface MastheadProps {
   small?: boolean;
   subtitle?: string;
@@ -17,11 +19,13 @@ export function Masthead({
           borderTop: '3px solid var(--ink)',
           borderBottom: '1px solid var(--ink)',
           padding: '6px 12px',
+          gap: 12,
         }}
       >
         <span className="byline">Vol. XII · Nº 3,481</span>
         <span className="byline">10 céntimos</span>
         <span className="byline">Tiempo en Madrid · llovizna · 9°</span>
+        <AudioControl />
       </div>
       <div className="text-center" style={{ padding: small ? '4px 0 0' : '10px 0 4px' }}>
         <h1 className="masthead" style={{ fontSize: small ? 56 : 96, letterSpacing: '-0.04em' }}>

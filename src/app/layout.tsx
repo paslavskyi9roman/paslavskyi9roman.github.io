@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { AudioPlayer } from '@/components/AudioPlayer';
 import './globals.css';
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
@@ -21,7 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <AudioPlayer />
+      </body>
     </html>
   );
 }
