@@ -4,6 +4,14 @@ type ReplyOutcome = {
   reply: string;
   feedback: DialogueFeedback;
   xpType: 'investigation' | 'grammar' | 'vocabulary';
+  statement?: { id: string; topic: string; value: string };
+};
+
+export const CASE_001_CULPRIT = 'npc_lucia_vargas';
+
+export const CASE_001_CLUE_CONTRADICTIONS: Record<string, string[]> = {
+  clue_note: ['lucia_home_2230'],
+  clue_receipt: ['lucia_alone_home'],
 };
 
 export const CASE_001_NPCS: NpcProfile[] = [
@@ -78,6 +86,11 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
       reply: 'Sí... sola. Mi compañera de piso estaba de viaje.',
       feedback: { isUnderstandable: true, xpAwarded: 8, explanation: 'Buena pregunta para verificar coartadas.' },
       xpType: 'investigation',
+      statement: {
+        id: 'lucia_alone_home',
+        topic: 'company',
+        value: 'Lucía afirmó estar sola en casa',
+      },
     },
     '¿A qué hora llegaste a casa?': {
       reply: 'Sobre las diez y media... creo.',
@@ -87,6 +100,11 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
         explanation: 'Excelente enfoque temporal para detectar contradicciones.',
       },
       xpType: 'investigation',
+      statement: {
+        id: 'lucia_home_2230',
+        topic: 'arrival_time',
+        value: 'Lucía dijo llegar a las 22:30',
+      },
     },
     'No entiendo.': {
       reply: 'Quiero decir que no salí de casa en toda la noche.',

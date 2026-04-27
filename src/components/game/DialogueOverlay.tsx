@@ -20,6 +20,7 @@ export function DialogueOverlay() {
     addClue,
     completeQuest,
     applyFeedback,
+    recordStatement,
   } = useGameStore();
   const [freeText, setFreeText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -78,6 +79,13 @@ export function DialogueOverlay() {
     if (!outcome) return;
     addNpcLine(outcome.reply, { id: selectedNpc.id, name: selectedNpc.name });
     applyFeedback(outcome.feedback, outcome.xpType);
+    if (outcome.statement) {
+      recordStatement({
+        ...outcome.statement,
+        npcId: selectedNpc.id,
+        sourceReply: text,
+      });
+    }
     if (selectedNpc.id === 'npc_lucia_vargas' && text === '¿A qué hora llegaste a casa?') {
       completeQuest('q1');
     }

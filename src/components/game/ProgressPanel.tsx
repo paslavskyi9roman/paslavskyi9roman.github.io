@@ -14,12 +14,28 @@ export function ProgressPanel() {
     completedQuestIds,
     lessons,
     npcs,
+    contradictions,
+    recordedStatements,
+    casePhase,
+    caseResolution,
   } = useGameStore();
   const routeQuestProgress = Math.min(discoveredClues.length, CASE_001_ROUTE_QUEST_REQUIRED_CLUES);
 
+  const phaseLabel: Record<typeof casePhase, string> = {
+    briefing: 'Informe inicial',
+    investigation: 'Investigación',
+    accusation: 'Lista para acusar',
+    resolved: caseResolution === 'solved' ? 'Caso resuelto' : 'Caso cerrado (fallido)',
+  };
+
   return (
     <aside className="panel p-4">
-      <h2 className="text-lg font-semibold">Progreso</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Progreso</h2>
+        <span className="rounded-full border border-amber-300/40 bg-amber-300/10 px-2 py-0.5 text-xs text-amber-200">
+          Fase: {phaseLabel[casePhase]}
+        </span>
+      </div>
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
         <p className="rounded bg-noir-800 p-2 text-sm">XP de vocabulario: {vocabularyXp}</p>
         <p className="rounded bg-noir-800 p-2 text-sm">XP de gramática: {grammarXp}</p>
@@ -28,6 +44,10 @@ export function ProgressPanel() {
       <p className="mt-3 text-sm text-slate-300">
         Clues found: {discoveredClues.length} ({routeQuestProgress}/{CASE_001_ROUTE_QUEST_REQUIRED_CLUES} for
         “Reconstruye la ruta”)
+      </p>
+      <p className="mt-1 text-sm text-slate-300">
+        Declaraciones registradas: {recordedStatements.length} · Contradicciones detectadas:{' '}
+        <span className={contradictions.length > 0 ? 'text-rose-300' : 'text-slate-400'}>{contradictions.length}</span>
       </p>
       <p className="mt-1 text-sm text-slate-300">NPCs unlocked: {npcs.length}</p>
       <div className="mt-3 rounded border border-slate-700 p-3">

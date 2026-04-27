@@ -48,3 +48,23 @@ export interface DialogueContextPayload {
   caseId: string;
   dialogueContext: DialogueMessage[];
 }
+
+export type CasePhase = 'briefing' | 'investigation' | 'accusation' | 'resolved';
+export type CaseResolution = 'solved' | 'failed' | null;
+
+export interface NpcStatement {
+  id: string;
+  npcId: string;
+  topic: string;
+  value: string;
+  recordedAt: number;
+  sourceReply: string;
+}
+
+export interface ContradictionRecord {
+  id: string;
+  clueId: string;
+  statementId: string;
+  npcId: string;
+  detectedAt: number;
+}
