@@ -19,9 +19,16 @@ import {
   CASE_001_NPCS,
   CASE_001_QUESTS,
 } from '@/game/content/case001';
+import {
+  APARTMENT_CLUE_CONTRADICTIONS,
+  APARTMENT_NPC_PROFILES,
+  APARTMENT_QUESTS,
+} from '@/game/content/case001-apartment';
+import { DEFAULT_LOCATION_ID, type LocationId } from '@/game/content/locations';
 
 interface GameState {
   currentCaseId: string;
+  currentLocationId: LocationId;
   npcs: NpcProfile[];
   quests: Quest[];
   lessons: Lesson[];
@@ -41,6 +48,7 @@ interface GameState {
   briefingSeen: boolean;
   startNpcDialogue: (npc: NpcProfile) => void;
   selectNpcById: (npcId: string) => void;
+  setLocation: (locationId: LocationId) => void;
   addPlayerLine: (text: string) => void;
   addNpcLine: (text: string, npc?: Pick<NpcProfile, 'id' | 'name'>) => void;
   addSystemLine: (text: string) => void;
@@ -53,17 +61,50 @@ interface GameState {
 }
 
 const STORAGE_KEY = 'madrid-noir-v1';
-const STORAGE_VERSION = 2;
+const STORAGE_VERSION = 3;
 
 const ACCUSATION_SOLVED_XP = 25;
 const ACCUSATION_FAILED_XP = 5;
 const REQUIRED_CLUES_FOR_ACCUSATION = 3;
 
+const ALL_QUESTS: Quest[] = [...CASE_001_QUESTS, ...APARTMENT_QUESTS];
+
+const ALL_CLUE_CONTRADICTIONS: Record<string, string[]> = {
+  ...CASE_001_CLUE_CONTRADICTIONS,
+  ...APARTMENT_CLUE_CONTRADICTIONS,
+};
+
+/**
+ * Per-location NPC roster: Diego only attends his bar, the inspector and the
+ * suspect appear at both. The opening lines and quick replies come from the
+ * location-specific overrides when they exist.
+ */
+const LOCATION_NPC_IDS: Record<LocationId, string[]> = {
+  bar_interior: ['npc_lucia_vargas', 'npc_diego_torres', 'npc_inspectora_ruiz'],
+  lucia_apartment: ['npc_lucia_vargas', 'npc_inspectora_ruiz'],
+};
+
+const buildNpcsForLocation = (locationId: LocationId): NpcProfile[] => {
+  const ids = LOCATION_NPC_IDS[locationId];
+  return ids
+    .map((id) => CASE_001_NPCS.find((n) => n.id === id))
+    .filter((n): n is NpcProfile => Boolean(n))
+    .map((base) => {
+      if (locationId === 'lucia_apartment') {
+        const override = APARTMENT_NPC_PROFILES[base.id];
+        if (override) {
+          return { ...base, openingLine: override.openingLine, quickReplies: override.quickReplies };
+        }
+      }
+      return base;
+    });
+};
+
 type ContradictionLookup = Record<string, string[] | undefined>;
 
 const buildContradictionUpdates = (
   state: GameState,
-  lookup: ContradictionLookup = CASE_001_CLUE_CONTRADICTIONS,
+  lookup: ContradictionLookup = ALL_CLUE_CONTRADICTIONS,
 ): { contradictions: ContradictionRecord[]; newRecords: ContradictionRecord[] } => {
   const existingPairs = new Set(state.contradictions.map((c) => c.id));
   const newRecords: ContradictionRecord[] = [];
@@ -122,14 +163,17 @@ const appendContradictionLines = (
   return [...history, ...lines];
 };
 
+const initialNpcs = buildNpcsForLocation(DEFAULT_LOCATION_ID);
+
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
       currentCaseId: 'case_001',
-      npcs: CASE_001_NPCS,
-      quests: CASE_001_QUESTS,
+      currentLocationId: DEFAULT_LOCATION_ID,
+      npcs: initialNpcs,
+      quests: ALL_QUESTS,
       lessons: CASE_001_LESSONS,
-      selectedNpc: CASE_001_NPCS[0] ?? null,
+      selectedNpc: initialNpcs[0] ?? null,
       completedQuestIds: [],
       dialogueHistory: [],
       discoveredClues: [],
@@ -154,6 +198,29 @@ export const useGameStore = create<GameState>()(
         const npc = get().npcs.find((profile) => profile.id === npcId);
         if (!npc) return;
         get().startNpcDialogue(npc);
+      },
+      setLocation: (locationId) => {
+        const current = get().currentLocationId;
+        if (current === locationId) return;
+        const npcs = buildNpcsForLocation(locationId);
+        const previousSelectedId = get().selectedNpc?.id;
+        const nextSelected = npcs.find((n) => n.id === previousSelectedId) ?? npcs[0] ?? null;
+        set({
+          currentLocationId: locationId,
+          npcs,
+          selectedNpc: nextSelected,
+          dialogueHistory: nextSelected
+            ? [
+                {
+                  speaker: 'npc',
+                  text: nextSelected.openingLine,
+                  timestamp: Date.now(),
+                  npcId: nextSelected.id,
+                  npcName: nextSelected.name,
+                },
+              ]
+            : [],
+        });
       },
       addPlayerLine: (text) =>
         set((state) => ({
@@ -262,6 +329,7 @@ export const useGameStore = create<GameState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         currentCaseId: state.currentCaseId,
+        currentLocationId: state.currentLocationId,
         completedQuestIds: state.completedQuestIds,
         dialogueHistory: state.dialogueHistory,
         discoveredClues: state.discoveredClues,
@@ -277,18 +345,32 @@ export const useGameStore = create<GameState>()(
       }),
       migrate: (persistedState, version) => {
         const base = (persistedState ?? {}) as Partial<GameState>;
+        let next: Partial<GameState> = base;
         if (version < 2) {
-          return {
-            ...base,
+          next = {
+            ...next,
             casePhase: 'briefing',
             caseResolution: null,
             accusedNpcId: null,
             recordedStatements: [],
             contradictions: [],
             briefingSeen: false,
-          } as Partial<GameState>;
+          };
         }
-        return base;
+        if (version < 3) {
+          next = {
+            ...next,
+            currentLocationId: DEFAULT_LOCATION_ID,
+          };
+        }
+        return next;
+      },
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const npcs = buildNpcsForLocation(state.currentLocationId ?? DEFAULT_LOCATION_ID);
+        state.npcs = npcs;
+        state.quests = ALL_QUESTS;
+        state.selectedNpc = npcs[0] ?? null;
       },
     },
   ),
