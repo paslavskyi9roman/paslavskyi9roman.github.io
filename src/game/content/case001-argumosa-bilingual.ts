@@ -25,20 +25,20 @@ export const ARGUMOSA_BILINGUAL_REPLIES: Record<string, Record<string, Bilingual
     '¿Por qué estuvo en casa de Lucía anoche?': {
       q: '¿Por qué estuvo en casa de Lucía anoche?',
       qEn: "Why were you at Lucía's flat last night?",
-      aEn: 'Because my brother phoned me three times on Monday and the last call was only silence. I bought two packets of Ducados on the way — his brand, the ones he smoked — and went up to her flat pretending to be a friend from the neighborhood. We sat down to smoke. She lied like a saint, detective.',
-      statementValueEn: "Mercedes confirmed visiting Lucía's flat on the night of 14 October",
+      aEn: 'Because my brother phoned me three times on Monday and the last call was only silence. I went up at dusk, before she left for her tavern set, pretending to be a friend from the neighborhood. I bought two packets of Ducados on the way — his brand, the ones he smoked — to loosen her tongue. We smoked for a while, she lied like a saint, and then she left to sing. I stayed waiting for her on the street, not quite knowing what to do.',
+      statementValueEn: "Mercedes confirmed visiting Lucía's flat at dusk on 14 October",
     },
-    '¿Qué vio al salir del piso?': {
-      q: '¿Qué vio al salir del piso?',
-      qEn: 'What did you see when you left the flat?',
-      aEn: 'I went down the stairs trembling. I was heading for the metro, but I cut through the alley behind La Sirena because I heard voices. I saw Lucía under the broken streetlamp, with stained hands. Ramón was no longer getting up. I ran to the phone box beside my stand.',
+    '¿Qué vio en la callejuela?': {
+      q: '¿Qué vio en la callejuela?',
+      qEn: 'What did you see in the alley?',
+      aEn: "Past midnight I was still waiting for her near the kiosk. I saw her leave the bar through the alley door and I followed at a distance. I heard voices — hers and my brother's. When I peered round the corner, Lucía was under the broken streetlamp with stained hands. Ramón was no longer getting up. I ran to the phone box.",
       statementValueEn: 'Mercedes saw Lucía in the alley beside Ramón',
     },
     '¿Qué investigaba su hermano?': {
       q: '¿Qué investigaba su hermano?',
       qEn: 'What was your brother investigating?',
-      aEn: "Her, detective. He was paying her to keep quiet — though I don't know exactly what about. Something about a gentleman from the Atocha, a grey coat, an old photograph. I know because when I'd brush off his jacket as he came to pick up the Diario, little scraps of paper would fall out of the pockets.",
-      statementValueEn: 'Mercedes confirmed Ramón was paying Lucía for her silence',
+      aEn: "Her, detective. He was paying her to keep quiet about a denunciation signed in '39 — a name now sleeping peacefully at the Atocha, a grey coat, the old photograph you'll have seen torn up in her wastebasket. I know because when I'd brush off his jacket as he came to pick up the Diario, little scraps of paper would fall out of the pockets.",
+      statementValueEn: 'Mercedes confirmed Ramón was paying Lucía for her silence over a 1939 denunciation',
     },
     '¿Reconoce este pintalabios?': {
       q: '¿Reconoce este pintalabios?',
@@ -48,7 +48,7 @@ export const ARGUMOSA_BILINGUAL_REPLIES: Record<string, Record<string, Bilingual
     '¿Llamó usted a la policía?': {
       q: '¿Llamó usted a la policía?',
       qEn: 'Did you call the police?',
-      aEn: 'At seven minutes past midnight, from the box right here. I dialled with my mother\'s gloves on. I told the duty sergeant: "In the alley behind La Sirena. There\'s a man. Hurry." Then I hung up before he could ask my name.',
+      aEn: "At seven minutes past midnight, from the box right here. I dialled with my mother's gloves on. I told the sergeant: \"In the alley behind La Sirena. There's a man. Hurry.\" Then I hung up before he could ask my name. I didn't want to give it, detective: the dead don't protect the living, and the man from the Atocha is still sleeping easy.",
       statementValueEn: 'Mercedes admitted she made the anonymous call from Calle Argumosa at 00:07',
     },
   },
@@ -71,7 +71,7 @@ export const ARGUMOSA_BILINGUAL_REPLIES: Record<string, Record<string, Bilingual
     'Resumen del caso, por favor.': {
       q: 'Resumen del caso, por favor.',
       qEn: 'A summary of the case, please.',
-      aEn: 'Three scenes, a single lie unravelling: the tavern placed Lucía there at 23:48, her flat revealed the man from the Atocha and the silence envelope, and Argumosa gives us a witness who saw her leaving the alley. The choice of when to close the circle is yours, detective.',
+      aEn: "Three scenes, a single lie unravelling: the tavern placed Lucía there at 23:48, her flat revealed the man from the Atocha and the silence envelope, and Argumosa gives us a witness who saw her leaving the alley. The man in the grey coat and his '39 denunciation are for another case file — tonight we close Lucía's. You decide when.",
     },
   },
 };

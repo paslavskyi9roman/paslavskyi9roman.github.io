@@ -15,6 +15,17 @@ export const CASE_001_CLUE_CONTRADICTIONS: Record<string, string[]> = {
   clue_receipt: ['lucia_alone_home'],
 };
 
+/**
+ * Bar-scene quick replies that are only offered after a specific clue has been
+ * discovered. Lucía's «Explíquelo» reply is the second-tier confrontation that
+ * unlocks once the player has the 23:48 receipt in hand.
+ */
+export const CASE_001_QUICK_REPLY_CLUE_GATES: Record<string, Record<string, string>> = {
+  npc_lucia_vargas: {
+    'Su recibo dice 23:48. Explíquelo.': 'clue_receipt',
+  },
+};
+
 export const CASE_001_NPCS: NpcProfile[] = [
   {
     id: 'npc_lucia_vargas',
@@ -29,6 +40,8 @@ export const CASE_001_NPCS: NpcProfile[] = [
       '¿Qué cantaste esa noche?',
       '¿Conocías al periodista?',
       'No entiendo.',
+      // Gated on clue_receipt — see CASE_001_QUICK_REPLY_CLUE_GATES below.
+      'Su recibo dice 23:48. Explíquelo.',
     ],
   },
   {
@@ -109,6 +122,24 @@ export const CASE_001_LESSONS: Lesson[] = [
     tip: 'Practica: testigo, coartada, pista, declaración.',
     xpType: 'vocabulary',
   },
+  {
+    id: 'l4',
+    title: 'Indefinido para hechos cerrados',
+    tip: '«Vi», «hablé», «encontré» suenan a parte oficial. El imperfecto suena a duda.',
+    xpType: 'grammar',
+  },
+  {
+    id: 'l5',
+    title: 'Vocabulario forense',
+    tip: 'Aprende: ceniza, filtro, carmín, huella, cabina, centralita.',
+    xpType: 'vocabulary',
+  },
+  {
+    id: 'l6',
+    title: 'Cronología antes que motivo',
+    tip: 'Hora, lugar, compañía — en ese orden. Las grietas aparecen solas.',
+    xpType: 'investigation',
+  },
 ];
 
 export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
@@ -166,8 +197,7 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
       xpType: 'investigation',
     },
     'No entiendo.': {
-      reply:
-        'Quiero decir que no salí de casa en toda la noche. Ni para ir al estanco, ni a por pan, ni a saludar a una vecina. Eso es lo que quiero decir, detective — escríbalo así, palabra por palabra, y haga que se lo firme.',
+      reply: 'Pues más claro, agua: no salí de casa. Nada más, detective. ¿Sigo?',
       feedback: {
         isUnderstandable: true,
         xpAwarded: 4,
@@ -175,6 +205,22 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
         explanation: 'Añadir «lo» suena más natural cuando se pide aclaración en español peninsular.',
       },
       xpType: 'grammar',
+    },
+    'Su recibo dice 23:48. Explíquelo.': {
+      reply:
+        'Bueno… volví un momento, sí. Por el bolso, que se me había olvidado. No lo dije porque no me pareció importante. Cinco minutos, detective. Cinco. Después a casa.',
+      feedback: {
+        isUnderstandable: true,
+        xpAwarded: 13,
+        explanation:
+          'La coartada se rompe sola: la suspecta cambia su declaración para acomodar la prueba física. Anota el tono dubitativo.',
+      },
+      xpType: 'investigation',
+      statement: {
+        id: 'lucia_brief_return',
+        topic: 'arrival_time',
+        value: 'Lucía rectificó: dice haber vuelto al bar brevemente a las 23:48',
+      },
     },
   },
   npc_diego_torres: {
@@ -212,11 +258,12 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
     },
     'Describe al hombre del abrigo gris.': {
       reply:
-        'Alto, pelo cano, manos cuidadas — manos que no parten leña. Anillo de sello en el meñique. Olor a colonia de hotel, no a barbería. Las cerillas que dejó en la barra eran del Hotel Atocha. Eso, detective, ya no es coincidencia.',
+        'Alto, pelo cano, manos cuidadas — manos que no parten leña. Anillo de sello en el meñique. Olor a colonia de hotel, no a barbería de barrio. El traje no era de aquí. Y dejó algo encima de la barra antes de irse, pero hasta que usted no lo encuentre, prefiero no señalarlo.',
       feedback: {
         isUnderstandable: true,
         xpAwarded: 11,
-        explanation: 'Descripción rica en sustantivos: practica «cano», «sello», «meñique», «cerillas».',
+        explanation:
+          'Descripción rica en sustantivos: practica «cano», «sello», «meñique». Lo que dejó en la barra es para que lo descubra usted.',
       },
       xpType: 'vocabulary',
     },
@@ -256,7 +303,7 @@ export const NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>> = {
     },
     '¿Tomamos huellas en el callejón?': {
       reply:
-        'Ya las tomamos al amanecer, antes de que el barrio despertara. Hay tres juegos parciales: dos coinciden con clientes habituales del bar; el tercero es de un hombre con la mano grande y un anillo en el meñique. Ese es el que nos interesa.',
+        'Sí. Tres juegos parciales, levantados al amanecer. Dos son de habituales. El tercero, mano grande, anillo en el meñique. Ese.',
       feedback: {
         isUnderstandable: true,
         xpAwarded: 12,

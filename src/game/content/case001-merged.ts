@@ -5,7 +5,7 @@
  * detective is currently questioning the witness.
  */
 
-import { NPC_OUTCOMES } from '@/game/content/case001';
+import { CASE_001_QUICK_REPLY_CLUE_GATES, NPC_OUTCOMES } from '@/game/content/case001';
 import { CASE_001_BILINGUAL_NPCS, CASE_001_BILINGUAL_REPLIES } from '@/game/content/case001-bilingual';
 import { APARTMENT_BILINGUAL_NPCS, APARTMENT_BILINGUAL_REPLIES } from '@/game/content/case001-apartment-bilingual';
 import { APARTMENT_NPC_OUTCOMES } from '@/game/content/case001-apartment';
@@ -86,6 +86,12 @@ export const ARGUMOSA_STATEMENT_IDS = new Set<string>(
  * Quick replies whose visibility is gated on a clue being discovered first.
  * Merged across locations so the InterrogationPanel can read a single map.
  */
-export const ALL_QUICK_REPLY_CLUE_GATES: Record<string, Record<string, string>> = {
-  ...ARGUMOSA_QUICK_REPLY_CLUE_GATES,
-};
+export const ALL_QUICK_REPLY_CLUE_GATES: Record<string, Record<string, string>> = (() => {
+  const merged: Record<string, Record<string, string>> = {};
+  for (const map of [CASE_001_QUICK_REPLY_CLUE_GATES, ARGUMOSA_QUICK_REPLY_CLUE_GATES]) {
+    for (const [npcId, gates] of Object.entries(map)) {
+      merged[npcId] = { ...(merged[npcId] ?? {}), ...gates };
+    }
+  }
+  return merged;
+})();
