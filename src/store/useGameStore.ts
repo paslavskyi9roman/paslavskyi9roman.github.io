@@ -68,14 +68,16 @@ interface GameState {
   recordStatement: (statement: Omit<NpcStatement, 'recordedAt'>) => void;
   recordUsedReply: (npcId: string, replyText: string) => void;
   dismissBriefing: () => void;
+  linkClueToStatement: (clueId: string, statementId: string) => { ok: boolean };
   accuse: (npcId: string, supportingContradictionIds: string[]) => void;
 }
 
 const STORAGE_KEY = 'madrid-noir-v1';
-const STORAGE_VERSION = 4;
+const STORAGE_VERSION = 5;
 
 const ACCUSATION_SOLVED_XP = 25;
 const ACCUSATION_FAILED_XP = 5;
+const CONTRADICTION_LINK_XP = 8;
 const REQUIRED_CLUES_FOR_ACCUSATION = 3;
 
 const ALL_QUESTS: Quest[] = [...CASE_001_QUESTS, ...APARTMENT_QUESTS, ...ARGUMOSA_QUESTS];
@@ -85,21 +87,6 @@ const ALL_CLUE_CONTRADICTIONS: Record<string, string[]> = {
   ...APARTMENT_CLUE_CONTRADICTIONS,
   ...ARGUMOSA_CLUE_CONTRADICTIONS,
 };
-
-const STATEMENT_TO_CLUES: Record<string, string[]> = (() => {
-  const result: Record<string, string[]> = {};
-  for (const [clueId, statementIds] of Object.entries(ALL_CLUE_CONTRADICTIONS)) {
-    for (const statementId of statementIds) {
-      const bucket = result[statementId];
-      if (bucket) {
-        bucket.push(clueId);
-      } else {
-        result[statementId] = [clueId];
-      }
-    }
-  }
-  return result;
-})();
 
 /**
  * Per-location NPC roster: Diego only attends his bar, the inspector and the
@@ -132,60 +119,6 @@ const buildNpcsForLocation = (locationId: LocationId): NpcProfile[] => {
       }
       return base;
     });
-};
-
-type ContradictionTrigger = { type: 'clue'; clue: Clue } | { type: 'statement'; statement: NpcStatement };
-
-const buildContradictionUpdates = (
-  state: GameState,
-  trigger: ContradictionTrigger,
-): { contradictions: ContradictionRecord[]; newRecords: ContradictionRecord[] } => {
-  const existingPairs = new Set(state.contradictions.map((c) => c.id));
-  const newRecords: ContradictionRecord[] = [];
-  const now = Date.now();
-
-  if (trigger.type === 'clue') {
-    const targetIds = ALL_CLUE_CONTRADICTIONS[trigger.clue.id];
-    if (targetIds && targetIds.length > 0) {
-      const targetSet = new Set(targetIds);
-      for (const statement of state.recordedStatements) {
-        if (!targetSet.has(statement.id)) continue;
-        const id = `${trigger.clue.id}__${statement.id}`;
-        if (existingPairs.has(id)) continue;
-        existingPairs.add(id);
-        newRecords.push({
-          id,
-          clueId: trigger.clue.id,
-          statementId: statement.id,
-          npcId: statement.npcId,
-          detectedAt: now,
-        });
-      }
-    }
-  } else {
-    const sourceClueIds = STATEMENT_TO_CLUES[trigger.statement.id];
-    if (sourceClueIds && sourceClueIds.length > 0) {
-      const sourceSet = new Set(sourceClueIds);
-      for (const clue of state.discoveredClues) {
-        if (!sourceSet.has(clue.id)) continue;
-        const id = `${clue.id}__${trigger.statement.id}`;
-        if (existingPairs.has(id)) continue;
-        existingPairs.add(id);
-        newRecords.push({
-          id,
-          clueId: clue.id,
-          statementId: trigger.statement.id,
-          npcId: trigger.statement.npcId,
-          detectedAt: now,
-        });
-      }
-    }
-  }
-
-  return {
-    contradictions: newRecords.length > 0 ? [...state.contradictions, ...newRecords] : state.contradictions,
-    newRecords,
-  };
 };
 
 const buildPhaseAfter = (state: GameState, contradictions: ContradictionRecord[]): CasePhase => {
@@ -300,16 +233,7 @@ export const useGameStore = create<GameState>()(
           if (state.discoveredClues.find((existing) => existing.id === clue.id)) {
             return state;
           }
-          const nextState: GameState = { ...state, discoveredClues: [...state.discoveredClues, clue] };
-          const { contradictions, newRecords } = buildContradictionUpdates(nextState, { type: 'clue', clue });
-          const dialogueHistory = appendContradictionLines(nextState.dialogueHistory, newRecords, nextState);
-          const casePhase = buildPhaseAfter({ ...nextState, contradictions }, contradictions);
-          return {
-            discoveredClues: nextState.discoveredClues,
-            contradictions,
-            dialogueHistory,
-            casePhase,
-          };
+          return { discoveredClues: [...state.discoveredClues, clue] };
         }),
       completeQuest: (questId) =>
         set((state) => {
@@ -372,23 +296,80 @@ export const useGameStore = create<GameState>()(
             return state;
           }
           const stampedStatement: NpcStatement = { ...statement, recordedAt: Date.now() };
-          const nextState: GameState = {
-            ...state,
-            recordedStatements: [...state.recordedStatements, stampedStatement],
-          };
-          const { contradictions, newRecords } = buildContradictionUpdates(nextState, {
-            type: 'statement',
-            statement: stampedStatement,
-          });
-          const dialogueHistory = appendContradictionLines(nextState.dialogueHistory, newRecords, nextState);
-          const casePhase = buildPhaseAfter({ ...nextState, contradictions }, contradictions);
-          return {
-            recordedStatements: nextState.recordedStatements,
-            contradictions,
-            dialogueHistory,
-            casePhase,
-          };
+          return { recordedStatements: [...state.recordedStatements, stampedStatement] };
         }),
+      linkClueToStatement: (clueId, statementId) => {
+        const state = get();
+        const clue = state.discoveredClues.find((c) => c.id === clueId);
+        const statement = state.recordedStatements.find((s) => s.id === statementId);
+        if (!clue || !statement) {
+          set({
+            latestFeedback: {
+              isUnderstandable: false,
+              xpAwarded: 0,
+              explanation: 'Necesitas tener tanto la pista como la declaración antes de poder vincularlas.',
+            },
+          });
+          return { ok: false };
+        }
+
+        const recordId = `${clueId}__${statementId}`;
+        if (state.contradictions.some((existing) => existing.id === recordId)) {
+          return { ok: true };
+        }
+
+        const validStatementIds = ALL_CLUE_CONTRADICTIONS[clueId];
+        const isMatch = validStatementIds?.includes(statementId) ?? false;
+        if (!isMatch) {
+          set((s) => ({
+            latestFeedback: {
+              isUnderstandable: false,
+              xpAwarded: 0,
+              explanation: `No encuentro contradicción entre «${clue.title}» y la declaración seleccionada.`,
+            },
+            dialogueHistory: [
+              ...s.dialogueHistory,
+              {
+                speaker: 'system',
+                text: `Vínculo descartado: «${clue.title}» y la declaración «${statement.value}» no se contradicen.`,
+                timestamp: Date.now(),
+              },
+            ],
+          }));
+          return { ok: false };
+        }
+
+        const newRecord: ContradictionRecord = {
+          id: recordId,
+          clueId,
+          statementId,
+          npcId: statement.npcId,
+          detectedAt: Date.now(),
+        };
+
+        const nextContradictions = [...state.contradictions, newRecord];
+        const nextDialogueHistory = appendContradictionLines(state.dialogueHistory, [newRecord], state);
+        const nextPhase = buildPhaseAfter({ ...state, contradictions: nextContradictions }, nextContradictions);
+        const nextXp = state.investigationXp + CONTRADICTION_LINK_XP;
+
+        set({
+          contradictions: nextContradictions,
+          dialogueHistory: nextDialogueHistory,
+          casePhase: nextPhase,
+          investigationXp: nextXp,
+          latestFeedback: {
+            isUnderstandable: true,
+            xpAwarded: CONTRADICTION_LINK_XP,
+            explanation: `Contradicción registrada: «${clue.title}» frente a «${statement.value}».`,
+          },
+        });
+
+        if (clueId in ARGUMOSA_CLUE_CONTRADICTIONS && !state.completedQuestIds.includes('q8')) {
+          get().completeQuest('q8');
+        }
+
+        return { ok: true };
+      },
       dismissBriefing: () =>
         set((state) => {
           if (state.briefingSeen && state.casePhase !== 'briefing') return state;
@@ -473,6 +454,11 @@ export const useGameStore = create<GameState>()(
             ...next,
             usedQuickReplies: {},
           };
+        }
+        if (version < 5) {
+          // v5 switches contradictions from auto-detected to player-linked. Existing
+          // contradictions were correctly derived under v4, so they are kept intact.
+          next = { ...next };
         }
         return next;
       },

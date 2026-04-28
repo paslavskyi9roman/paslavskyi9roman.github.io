@@ -10,6 +10,11 @@ interface NewsprintPhotoProps {
   style?: CSSProperties;
   priority?: boolean;
   fillWidth?: boolean;
+  /** When true, renders a magnifier control on the photo. Caller owns open state. */
+  expandable?: boolean;
+  onExpandClick?: () => void;
+  expandLabel?: string;
+  objectFit?: 'cover' | 'contain';
 }
 
 export function NewsprintPhoto({
@@ -21,6 +26,10 @@ export function NewsprintPhoto({
   style,
   priority = false,
   fillWidth = true,
+  expandable = false,
+  onExpandClick,
+  expandLabel = 'Ampliar fotografía',
+  objectFit = 'cover',
 }: NewsprintPhotoProps) {
   return (
     <figure className={`newsprint-img-wrap ${className}`} style={{ height, ...style }}>
@@ -31,8 +40,39 @@ export function NewsprintPhoto({
         sizes="(min-width: 1440px) 50vw, 100vw"
         priority={priority}
         className="newsprint-img"
-        style={{ objectFit: 'cover' }}
+        style={{ objectFit }}
       />
+      {expandable && onExpandClick && (
+        <button
+          type="button"
+          onClick={onExpandClick}
+          aria-label={expandLabel}
+          title={expandLabel}
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 4,
+            width: 34,
+            height: 34,
+            borderRadius: 0,
+            border: '2px solid var(--paper)',
+            background: 'rgba(15, 12, 8, 0.78)',
+            color: 'var(--paper)',
+            cursor: 'pointer',
+            fontFamily: 'var(--sans)',
+            fontWeight: 900,
+            fontSize: 16,
+            lineHeight: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
+          }}
+        >
+          ⛶
+        </button>
+      )}
       {caption && (
         <figcaption
           className="caption"

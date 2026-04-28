@@ -33,6 +33,14 @@ export interface SceneClue {
   titleEn: string;
   description: string;
   descriptionEn: string;
+  /** Short prose shown when the player examines the hotspot, before they commit it to the journal. */
+  examinePrompt: string;
+  examinePromptEn: string;
+  /** Optional preconditions: the hotspot is hidden until all listed clues/statements are present. */
+  requires?: {
+    clueIds?: string[];
+    statementIds?: string[];
+  };
   /** Position on the bar interior photograph (0–100, percent). */
   x: number;
   y: number;
@@ -206,6 +214,10 @@ export const CASE_001_SCENE_CLUES: SceneClue[] = [
     titleEn: 'Crumpled note',
     description: 'Letra apresurada: «Te espero en el callejón, 23:00 — L.»',
     descriptionEn: 'Hurried handwriting: "Meet me in the alley, 23:00 — L."',
+    examinePrompt:
+      'Una hoja arrugada asoma bajo el cenicero. La letra es apresurada — alguien escribió esto a oscuras.',
+    examinePromptEn:
+      'A crumpled scrap pokes out from under the ashtray. The handwriting is hurried — someone wrote this in the dark.',
     x: 22,
     y: 78,
   },
@@ -215,6 +227,8 @@ export const CASE_001_SCENE_CLUES: SceneClue[] = [
     titleEn: 'Bar receipt',
     description: '23:48 · 2× vermú · firma: L. Vargas',
     descriptionEn: '23:48 · 2× vermouth · signed: L. Vargas',
+    examinePrompt: 'Un recibo pegado al borde de la barra. La hora coincide con el último servicio de la noche.',
+    examinePromptEn: 'A receipt stuck to the edge of the counter. The time matches the last round of the night.',
     x: 76,
     y: 35,
   },
@@ -224,6 +238,8 @@ export const CASE_001_SCENE_CLUES: SceneClue[] = [
     titleEn: 'Glass with prints',
     description: 'Carmín rojo en el borde — junto al cuerpo.',
     descriptionEn: 'Red carmine on the rim — beside the body.',
+    examinePrompt: 'Un vaso solitario junto al cuerpo. Un beso de carmín rojo en el borde — y no es el de Lucía.',
+    examinePromptEn: "A lone glass beside the body. A kiss of red carmine on the rim — and it isn't Lucía's shade.",
     x: 48,
     y: 88,
   },
@@ -233,6 +249,8 @@ export const CASE_001_SCENE_CLUES: SceneClue[] = [
     titleEn: 'Matchbook',
     description: '«Hotel Atocha». Tres cerillas usadas.',
     descriptionEn: '"Hotel Atocha". Three matches used.',
+    examinePrompt: 'Una caja de cerillas con el sello del Hotel Atocha. Tres cerillas ya quemadas.',
+    examinePromptEn: "A matchbook stamped with the Hotel Atocha's seal. Three matches already burned.",
     x: 14,
     y: 48,
   },

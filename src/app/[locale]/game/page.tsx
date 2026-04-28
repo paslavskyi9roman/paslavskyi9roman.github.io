@@ -14,6 +14,7 @@ import { DetectiveNotebook } from '@/components/game/DetectiveNotebook';
 import { InterrogationPanel } from '@/components/game/InterrogationPanel';
 import { LocationTabs } from '@/components/game/LocationTabs';
 import { useGameStore } from '@/store/useGameStore';
+import { playSfx } from '@/lib/sfx';
 
 export default function GamePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
@@ -50,7 +51,14 @@ export default function GamePage({ params }: { params: Promise<{ locale: string 
           </p>
         </div>
         <div className="flex gap-3 items-center">
-          <button type="button" onClick={() => setJournalOpen(true)} className="btn-ghost">
+          <button
+            type="button"
+            onClick={() => {
+              playSfx('journal-open');
+              setJournalOpen(true);
+            }}
+            className="btn-ghost"
+          >
             Diario{' '}
             {contradictionsCount > 0 && (
               <span style={{ color: 'var(--red)', marginLeft: 6 }}>⚡{contradictionsCount}</span>
