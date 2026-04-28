@@ -86,6 +86,21 @@ const ALL_CLUE_CONTRADICTIONS: Record<string, string[]> = {
   ...ARGUMOSA_CLUE_CONTRADICTIONS,
 };
 
+const STATEMENT_TO_CLUES: Record<string, string[]> = (() => {
+  const result: Record<string, string[]> = {};
+  for (const [clueId, statementIds] of Object.entries(ALL_CLUE_CONTRADICTIONS)) {
+    for (const statementId of statementIds) {
+      const bucket = result[statementId];
+      if (bucket) {
+        bucket.push(clueId);
+      } else {
+        result[statementId] = [clueId];
+      }
+    }
+  }
+  return result;
+})();
+
 /**
  * Per-location NPC roster: Diego only attends his bar, the inspector and the
  * suspect appear at both. The opening lines and quick replies come from the
@@ -119,32 +134,54 @@ const buildNpcsForLocation = (locationId: LocationId): NpcProfile[] => {
     });
 };
 
-type ContradictionLookup = Record<string, string[] | undefined>;
+type ContradictionTrigger = { type: 'clue'; clue: Clue } | { type: 'statement'; statement: NpcStatement };
 
 const buildContradictionUpdates = (
   state: GameState,
-  lookup: ContradictionLookup = ALL_CLUE_CONTRADICTIONS,
+  trigger: ContradictionTrigger,
 ): { contradictions: ContradictionRecord[]; newRecords: ContradictionRecord[] } => {
   const existingPairs = new Set(state.contradictions.map((c) => c.id));
   const newRecords: ContradictionRecord[] = [];
   const now = Date.now();
-  for (const clue of state.discoveredClues) {
-    const targets = lookup[clue.id];
-    if (!targets) continue;
-    for (const statement of state.recordedStatements) {
-      if (!targets.includes(statement.id)) continue;
-      const id = `${clue.id}__${statement.id}`;
-      if (existingPairs.has(id)) continue;
-      existingPairs.add(id);
-      newRecords.push({
-        id,
-        clueId: clue.id,
-        statementId: statement.id,
-        npcId: statement.npcId,
-        detectedAt: now,
-      });
+
+  if (trigger.type === 'clue') {
+    const targetIds = ALL_CLUE_CONTRADICTIONS[trigger.clue.id];
+    if (targetIds && targetIds.length > 0) {
+      const targetSet = new Set(targetIds);
+      for (const statement of state.recordedStatements) {
+        if (!targetSet.has(statement.id)) continue;
+        const id = `${trigger.clue.id}__${statement.id}`;
+        if (existingPairs.has(id)) continue;
+        existingPairs.add(id);
+        newRecords.push({
+          id,
+          clueId: trigger.clue.id,
+          statementId: statement.id,
+          npcId: statement.npcId,
+          detectedAt: now,
+        });
+      }
+    }
+  } else {
+    const sourceClueIds = STATEMENT_TO_CLUES[trigger.statement.id];
+    if (sourceClueIds && sourceClueIds.length > 0) {
+      const sourceSet = new Set(sourceClueIds);
+      for (const clue of state.discoveredClues) {
+        if (!sourceSet.has(clue.id)) continue;
+        const id = `${clue.id}__${trigger.statement.id}`;
+        if (existingPairs.has(id)) continue;
+        existingPairs.add(id);
+        newRecords.push({
+          id,
+          clueId: clue.id,
+          statementId: trigger.statement.id,
+          npcId: trigger.statement.npcId,
+          detectedAt: now,
+        });
+      }
     }
   }
+
   return {
     contradictions: newRecords.length > 0 ? [...state.contradictions, ...newRecords] : state.contradictions,
     newRecords,
@@ -264,7 +301,7 @@ export const useGameStore = create<GameState>()(
             return state;
           }
           const nextState: GameState = { ...state, discoveredClues: [...state.discoveredClues, clue] };
-          const { contradictions, newRecords } = buildContradictionUpdates(nextState);
+          const { contradictions, newRecords } = buildContradictionUpdates(nextState, { type: 'clue', clue });
           const dialogueHistory = appendContradictionLines(nextState.dialogueHistory, newRecords, nextState);
           const casePhase = buildPhaseAfter({ ...nextState, contradictions }, contradictions);
           return {
@@ -339,7 +376,10 @@ export const useGameStore = create<GameState>()(
             ...state,
             recordedStatements: [...state.recordedStatements, stampedStatement],
           };
-          const { contradictions, newRecords } = buildContradictionUpdates(nextState);
+          const { contradictions, newRecords } = buildContradictionUpdates(nextState, {
+            type: 'statement',
+            statement: stampedStatement,
+          });
           const dialogueHistory = appendContradictionLines(nextState.dialogueHistory, newRecords, nextState);
           const casePhase = buildPhaseAfter({ ...nextState, contradictions }, contradictions);
           return {
