@@ -70,7 +70,12 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
 
   const cluesByLocation = discoveredClues.reduce<Record<string, typeof discoveredClues>>((acc, clue) => {
     const locId = CLUE_LOCATION[clue.id];
-    if (!locId) return acc;
+    if (!locId) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[ClueJournal] unmapped clue', clue.id);
+      }
+      return acc;
+    }
     (acc[locId] ??= []).push(clue);
     return acc;
   }, {});
@@ -78,7 +83,12 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
   const statementsByLocation = recordedStatements.reduce<Record<string, typeof recordedStatements>>(
     (acc, statement) => {
       const locId = NPC_LOCATION[statement.npcId];
-      if (!locId) return acc;
+      if (!locId) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('[ClueJournal] unmapped NPC for statement', statement.npcId);
+        }
+        return acc;
+      }
       (acc[locId] ??= []).push(statement);
       return acc;
     },
@@ -87,7 +97,12 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
 
   const contradictionsByLocation = contradictions.reduce<Record<string, typeof contradictions>>((acc, c) => {
     const locId = NPC_LOCATION[c.npcId];
-    if (!locId) return acc;
+    if (!locId) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[ClueJournal] unmapped NPC for contradiction', c.npcId);
+      }
+      return acc;
+    }
     (acc[locId] ??= []).push(c);
     return acc;
   }, {});
