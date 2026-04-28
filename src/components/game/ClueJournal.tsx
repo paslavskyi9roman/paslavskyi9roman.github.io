@@ -13,6 +13,8 @@ import { NPC_OUTCOMES } from '@/game/content/case001';
 import { APARTMENT_NPC_OUTCOMES } from '@/game/content/case001-apartment';
 import { ARGUMOSA_NPC_OUTCOMES } from '@/game/content/case001-argumosa';
 import { useGameStore } from '@/store/useGameStore';
+import type { LocationId } from '@/game/content/locations';
+import { LOCATIONS, LOCATION_ORDER } from '@/game/content/locations';
 
 const ALL_SCENE_CLUES = [...CASE_001_SCENE_CLUES, ...APARTMENT_SCENE_CLUES, ...ARGUMOSA_SCENE_CLUES];
 
@@ -36,6 +38,21 @@ const STATEMENT_VALUE_EN: Record<string, string> = (() => {
   return map;
 })();
 
+const CLUE_LOCATION: Record<string, LocationId> = {
+  ...Object.fromEntries(CASE_001_SCENE_CLUES.map((c) => [c.id, 'bar_interior' as LocationId])),
+  ...Object.fromEntries(APARTMENT_SCENE_CLUES.map((c) => [c.id, 'lucia_apartment' as LocationId])),
+  ...Object.fromEntries(ARGUMOSA_SCENE_CLUES.map((c) => [c.id, 'argumosa_kiosk' as LocationId])),
+};
+
+const NPC_LOCATION: Record<string, LocationId> = {
+  ...Object.fromEntries(Object.keys(NPC_OUTCOMES).map((id) => [id, 'bar_interior' as LocationId])),
+  ...Object.fromEntries(Object.keys(APARTMENT_NPC_OUTCOMES).map((id) => [id, 'lucia_apartment' as LocationId])),
+  ...Object.fromEntries(Object.keys(ARGUMOSA_NPC_OUTCOMES).map((id) => [id, 'argumosa_kiosk' as LocationId])),
+};
+
+// TODO-remove-in-task-2: referenced below only to satisfy noUnusedLocals until Task 2 uses them
+void [LOCATIONS, LOCATION_ORDER, CLUE_LOCATION, NPC_LOCATION];
+
 interface ClueJournalProps {
   open: boolean;
   onClose: () => void;
@@ -46,6 +63,8 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
   const recordedStatements = useGameStore((state) => state.recordedStatements);
   const contradictions = useGameStore((state) => state.contradictions);
   const npcs = useGameStore((state) => state.npcs);
+  const currentLocationId = useGameStore((state) => state.currentLocationId);
+  void currentLocationId; // TODO-remove-in-task-2
 
   if (!open) return null;
 
