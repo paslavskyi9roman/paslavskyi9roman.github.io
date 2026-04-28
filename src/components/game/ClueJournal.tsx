@@ -50,7 +50,7 @@ const NPC_LOCATION: Record<string, LocationId> = {
   ...Object.fromEntries(Object.keys(ARGUMOSA_NPC_OUTCOMES).map((id) => [id, 'argumosa_kiosk' as LocationId])),
 };
 
-// TODO-remove-in-task-2: referenced below only to satisfy noUnusedLocals until Task 2 uses them
+// TODO-remove-in-task-2: silences unused-import warnings until Task 2 wires these into render code
 void [LOCATIONS, LOCATION_ORDER, CLUE_LOCATION, NPC_LOCATION];
 
 interface ClueJournalProps {
