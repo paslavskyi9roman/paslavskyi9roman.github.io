@@ -123,9 +123,7 @@ export function SceneCanvas({
         </span>
       )}
 
-      {activeClue && (
-        <ExaminePopover ref={popoverRef} clue={activeClue} onClose={() => setActiveClue(null)} />
-      )}
+      {activeClue && <ExaminePopover ref={popoverRef} clue={activeClue} onClose={() => setActiveClue(null)} />}
     </div>
   );
 }
