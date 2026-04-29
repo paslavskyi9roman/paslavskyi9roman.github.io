@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Es } from '@/components/newsprint/Es';
 import { Stamp } from '@/components/newsprint/Stamp';
 import {
@@ -61,6 +62,8 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
   const contradictions = useGameStore((state) => state.contradictions);
   const npcs = useGameStore((state) => state.npcs);
   const currentLocationId = useGameStore((state) => state.currentLocationId);
+  const linkClueToStatement = useGameStore((state) => state.linkClueToStatement);
+  const [linkingClueId, setLinkingClueId] = useState<string | null>(null);
 
   if (!open) return null;
 
@@ -234,6 +237,8 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
                   ) : (
                     locClues.map((clue) => {
                       const scene = sceneClueLookup.get(clue.id);
+                      const linkedContradiction = contradictions.find((cx) => cx.clueId === clue.id);
+                      const isLinking = linkingClueId === clue.id;
                       return (
                         <div
                           key={clue.id}
@@ -257,6 +262,89 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
                           <p className="body-serif" style={{ fontSize: 12, marginTop: 4 }}>
                             {scene ? <Es es={clue.description} en={scene.descriptionEn} /> : clue.description}
                           </p>
+
+                          <div
+                            style={{
+                              marginTop: 8,
+                              paddingTop: 6,
+                              borderTop: '1px dotted var(--ink-faded)',
+                            }}
+                          >
+                            {linkedContradiction ? (
+                              <Stamp rotate={-3} style={{ fontSize: 9, padding: '3px 8px' }}>
+                                <Es es="Contradicción registrada" en="Contradiction registered" />
+                              </Stamp>
+                            ) : recordedStatements.length === 0 ? (
+                              <span
+                                className="byline"
+                                style={{ fontSize: 10, color: 'var(--ink-faded)', fontStyle: 'italic' }}
+                              >
+                                <Es
+                                  es="Aún no hay declaraciones que vincular."
+                                  en="No statements yet to link against."
+                                />
+                              </span>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  className="btn-ghost"
+                                  style={{ padding: '4px 8px', fontSize: 10 }}
+                                  onClick={() => setLinkingClueId(isLinking ? null : clue.id)}
+                                  aria-expanded={isLinking}
+                                >
+                                  {isLinking ? (
+                                    <Es es="Cancelar vínculo" en="Cancel link" />
+                                  ) : (
+                                    <Es es="Vincular a una declaración…" en="Link to a statement…" />
+                                  )}
+                                </button>
+                                {isLinking && (
+                                  <ul
+                                    style={{
+                                      listStyle: 'none',
+                                      padding: 0,
+                                      margin: '8px 0 0',
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      gap: 4,
+                                    }}
+                                  >
+                                    {recordedStatements.map((stmt) => {
+                                      const npc = npcs.find((n) => n.id === stmt.npcId);
+                                      return (
+                                        <li key={stmt.id}>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              linkClueToStatement(clue.id, stmt.id);
+                                              setLinkingClueId(null);
+                                            }}
+                                            style={{
+                                              width: '100%',
+                                              textAlign: 'left',
+                                              padding: '6px 8px',
+                                              border: '1px solid var(--ink-faded)',
+                                              background: 'var(--paper-shadow)',
+                                              cursor: 'pointer',
+                                              fontFamily: 'var(--body)',
+                                              fontSize: 12,
+                                              lineHeight: 1.4,
+                                            }}
+                                          >
+                                            <span className="byline" style={{ fontSize: 9 }}>
+                                              [{npc?.name ?? stmt.npcId} · {stmt.topic}]
+                                            </span>{' '}
+                                            {stmt.value}
+                                          </button>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
                       );
                     })

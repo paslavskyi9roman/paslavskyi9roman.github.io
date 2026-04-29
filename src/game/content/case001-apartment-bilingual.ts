@@ -102,6 +102,10 @@ export const APARTMENT_SCENE_CLUES: SceneClue[] = [
     titleEn: 'Torn photo in the wastebasket',
     description: 'Lucía y Ramón en la Verbena de San Cayetano, 1952. Sonrisas idénticas, mano sobre hombro.',
     descriptionEn: 'Lucía and Ramón at the San Cayetano fair, 1952. Identical smiles, hand on shoulder.',
+    examinePrompt:
+      'Una fotografía rota dentro de la papelera. Si juntas los pedazos, dos sonrisas y una mano sobre un hombro.',
+    examinePromptEn:
+      'A torn photograph inside the wastebasket. Pieced back together, two smiles and a hand on a shoulder.',
     x: 18,
     y: 72,
   },
@@ -111,6 +115,9 @@ export const APARTMENT_SCENE_CLUES: SceneClue[] = [
     titleEn: 'Ashtray with cigarette butts',
     description: 'Tres Ducados a medio fumar. Carmín rojo en dos filtros — distinto al pintalabios de Lucía.',
     descriptionEn: "Three half-smoked Ducados. Red lipstick on two filters — different shade from Lucía's.",
+    examinePrompt: 'El cenicero rebosa de Ducados a medio fumar. Hay carmín en dos filtros — pero no es el suyo.',
+    examinePromptEn:
+      'The ashtray is heavy with half-smoked Ducados. Two filters carry red carmine — but not her shade.',
     x: 50,
     y: 58,
   },
@@ -121,6 +128,10 @@ export const APARTMENT_SCENE_CLUES: SceneClue[] = [
     description: 'Lana inglesa, talla de hombre. Bolsillo: cerillas «Hotel Atocha» — idénticas a las del callejón.',
     descriptionEn:
       'English wool, men\'s size. Pocket: matchbook from "Hotel Atocha" — identical to those in the alley.',
+    examinePrompt:
+      'Un abrigo gris cuelga del perchero. Lana inglesa, talla de hombre. En el bolsillo, cerillas del Hotel Atocha.',
+    examinePromptEn:
+      "A grey coat hangs on the rack. English wool, man's size. In the pocket, matches from the Hotel Atocha.",
     x: 82,
     y: 38,
   },
@@ -130,6 +141,11 @@ export const APARTMENT_SCENE_CLUES: SceneClue[] = [
     titleEn: 'Envelope of pesetas',
     description: 'Cinco mil pesetas en billetes nuevos, atados con goma. Sobre rotulado: «R.Q. — silencio».',
     descriptionEn: 'Five thousand pesetas in fresh notes, banded together. Envelope labelled: "R.Q. — silence".',
+    examinePrompt:
+      'Un sobre asoma bajo unos papeles. Pesetas nuevas, atadas con goma. Una palabra al frente: silencio.',
+    examinePromptEn:
+      'An envelope peeks out from under some papers. Fresh pesetas, banded with rubber. One word on the front: silence.',
+    requires: { statementIds: ['lucia_no_visitors'] },
     x: 38,
     y: 30,
   },

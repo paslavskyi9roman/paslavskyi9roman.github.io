@@ -1,25 +1,35 @@
 'use client';
 
-import { NewsprintPhoto } from '@/components/newsprint/NewsprintPhoto';
+import { useState } from 'react';
+import { SceneCanvas } from '@/components/game/SceneCanvas';
+import { SceneLightbox } from '@/components/game/SceneLightbox';
 import type { SceneClue } from '@/game/content/case001-bilingual';
 import { APARTMENT_SCENE_CLUES } from '@/game/content/case001-apartment-bilingual';
 import { APARTMENT_ROUTE_QUEST_REQUIRED_CLUES } from '@/game/content/case001-apartment';
 import { LOCATIONS } from '@/game/content/locations';
 import { useGameStore } from '@/store/useGameStore';
+import { playSfx } from '@/lib/sfx';
+import { isSceneClueAvailable } from '@/game/discovery';
 
 const LOCATION = LOCATIONS.lucia_apartment;
 
 export function ApartmentScene() {
   const discoveredClues = useGameStore((state) => state.discoveredClues);
+  const recordedStatements = useGameStore((state) => state.recordedStatements);
   const addClue = useGameStore((state) => state.addClue);
   const completeQuest = useGameStore((state) => state.completeQuest);
   const applyFeedback = useGameStore((state) => state.applyFeedback);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const apartmentCluesFound = discoveredClues.filter((c) => APARTMENT_SCENE_CLUES.some((sc) => sc.id === c.id)).length;
+  const availableClues = APARTMENT_SCENE_CLUES.filter((clue) =>
+    isSceneClueAvailable(clue, { discoveredClues, recordedStatements }),
+  );
 
   const findClue = (clue: SceneClue) => {
     if (discoveredClues.some((c) => c.id === clue.id)) return;
     addClue({ id: clue.id, title: clue.title, description: clue.description });
+    playSfx('record');
     const apartmentFoundAfter = useGameStore
       .getState()
       .discoveredClues.filter((c) => APARTMENT_SCENE_CLUES.some((sc) => sc.id === c.id)).length;
@@ -53,54 +63,42 @@ export function ApartmentScene() {
         <span className="byline">{LOCATION.byline.es}</span>
       </div>
 
-      <div
-        role="img"
-        aria-label="Lienzo del juego Madrid Noir — Apartamento de Lucía Vargas"
-        style={{ position: 'relative' }}
-      >
-        <NewsprintPhoto src={LOCATION.background} alt="Apartamento de Lucía" height={340} />
-        {APARTMENT_SCENE_CLUES.map((clue, i) => {
-          const found = discoveredClues.some((c) => c.id === clue.id);
-          return (
-            <button
-              key={clue.id}
-              type="button"
-              onClick={() => findClue(clue)}
-              className={`clue-dot${found ? ' found' : ''}`}
-              style={{
-                left: `${clue.x}%`,
-                top: `${clue.y}%`,
-                transform: 'translate(-50%, -50%)',
-                border: 'none',
-              }}
-              title={found ? clue.title : `Examinar (pista ${i + 1})`}
-              aria-label={found ? `Pista encontrada: ${clue.title}` : `Examinar punto ${i + 1}`}
-            >
-              {found ? '✓' : i + 1}
-            </button>
-          );
-        })}
-
-        <span
-          className="handwritten"
-          style={{
-            position: 'absolute',
-            top: 8,
-            left: 12,
-            fontSize: 22,
-            color: 'var(--red-deep)',
-            textShadow: '0 0 0 currentColor',
-          }}
-        >
-          registrar →
-        </span>
-      </div>
+      <SceneCanvas
+        background={LOCATION.background}
+        alt="Apartamento de Lucía"
+        ariaLabel="Lienzo del juego Madrid Noir — Apartamento de Lucía Vargas"
+        clues={availableClues}
+        discoveredClues={discoveredClues}
+        onCommitClue={findClue}
+        variant="inline"
+        handwritten="registrar →"
+        expandable
+        onExpandClick={() => setLightboxOpen(true)}
+      />
       <p className="caption" style={{ marginTop: 0 }}>
         {LOCATION.caption.es}
       </p>
       <p className="byline" style={{ marginTop: 4, fontSize: 10, color: 'var(--ink-faded)' }}>
         Indicios localizados: {apartmentCluesFound}/{APARTMENT_SCENE_CLUES.length}
       </p>
+
+      <SceneLightbox
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        title={`${LOCATION.kicker.es} · Vista ampliada`}
+        byline={LOCATION.byline.es}
+        caption={LOCATION.caption.es}
+      >
+        <SceneCanvas
+          background={LOCATION.background}
+          alt="Apartamento de Lucía, vista ampliada"
+          ariaLabel={`Vista ampliada — ${LOCATION.name.es}`}
+          clues={availableClues}
+          discoveredClues={discoveredClues}
+          onCommitClue={findClue}
+          variant="lightbox"
+        />
+      </SceneLightbox>
     </div>
   );
 }
