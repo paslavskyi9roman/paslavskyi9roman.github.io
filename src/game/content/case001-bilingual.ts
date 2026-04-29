@@ -134,12 +134,18 @@ export const CASE_001_BILINGUAL_REPLIES: Record<string, Record<string, Bilingual
     'No entiendo.': {
       q: 'No entiendo.',
       qEn: "I don't understand.",
-      aEn: "I mean I didn't leave the house all night. Not for the tobacco shop, not for bread, not to greet a neighbor. That's what I mean, detective — write it down word for word, and have me sign it.",
+      aEn: "Plain enough, then: I didn't leave the house. Nothing more, detective. Shall I go on?",
       correction: {
         from: 'No entiendo.',
         to: 'No lo entiendo.',
         note: 'Añadir «lo» suena más natural en español peninsular.',
       },
+    },
+    'Su recibo dice 23:48. Explíquelo.': {
+      q: 'Su recibo dice 23:48. Explíquelo.',
+      qEn: 'Your receipt says 23:48. Explain.',
+      aEn: "Well… I went back for a moment, yes. For my bag — I'd forgotten it. I didn't mention it because it didn't seem important. Five minutes, detective. Five. Then home.",
+      statementValueEn: 'Lucía revised her account: claims she briefly returned to the bar at 23:48',
     },
   },
   npc_diego_torres: {
@@ -161,7 +167,7 @@ export const CASE_001_BILINGUAL_REPLIES: Record<string, Record<string, Bilingual
     'Describe al hombre del abrigo gris.': {
       q: 'Describe al hombre del abrigo gris.',
       qEn: 'Describe the man in the grey coat.',
-      aEn: "Tall, grey hair, well-kept hands — hands that don't chop firewood. Signet ring on the little finger. Hotel cologne, not barber's eau de toilette. The matchbook he left on the bar was from the Hotel Atocha. That, detective, is no longer coincidence.",
+      aEn: "Tall, grey hair, well-kept hands — hands that don't chop firewood. Signet ring on the little finger. Hotel cologne, not the local barber's eau de toilette. The suit wasn't from around here. He left something on the bar before he went out — but until you find it yourself, detective, I'd rather not point at it.",
     },
     'Repítelo más despacio.': {
       q: 'Repítelo más despacio.',
@@ -265,6 +271,18 @@ export const LESSON_BILINGUAL: Record<string, { title: string; tip: string }> = 
   l3: {
     title: 'Police vocabulary',
     tip: 'Practice: testigo, coartada, pista, declaración.',
+  },
+  l4: {
+    title: 'Preterite for closed facts',
+    tip: '"Vi", "hablé", "encontré" sound like an official report. The imperfect sounds like doubt.',
+  },
+  l5: {
+    title: 'Forensic vocabulary',
+    tip: 'Learn: ceniza, filtro, carmín, huella, cabina, centralita.',
+  },
+  l6: {
+    title: 'Chronology before motive',
+    tip: 'Time, place, company — in that order. The cracks appear on their own.',
   },
 };
 

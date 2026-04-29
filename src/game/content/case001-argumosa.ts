@@ -25,7 +25,7 @@ export const MERCEDES_NPC_PROFILE: NpcProfile = {
   lessonFocus: 'investigation',
   quickReplies: [
     '¿Por qué estuvo en casa de Lucía anoche?',
-    '¿Qué vio al salir del piso?',
+    '¿Qué vio en la callejuela?',
     '¿Qué investigaba su hermano?',
     '¿Reconoce este pintalabios?',
     '¿Llamó usted a la policía?',
@@ -102,6 +102,9 @@ export const ARGUMOSA_CLUE_CONTRADICTIONS: Record<string, string[]> = {
 export const ARGUMOSA_QUICK_REPLY_CLUE_GATES: Record<string, Record<string, string>> = {
   npc_mercedes_quintero: {
     '¿Reconoce este pintalabios?': 'arg_clue_lipstick',
+    // Eyewitness account is the case's biggest reveal — withhold it until the
+    // detective has surfaced the motive (the «silencio» envelope from the flat).
+    '¿Qué vio en la callejuela?': 'apt_clue_envelope',
   },
 };
 
@@ -109,27 +112,27 @@ export const ARGUMOSA_NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>>
   npc_mercedes_quintero: {
     '¿Por qué estuvo en casa de Lucía anoche?': {
       reply:
-        'Porque mi hermano me llamó tres veces el lunes y la última solo era silencio. Compré dos paquetes de Ducados de camino — los suyos, los que él fumaba — y subí a su casa fingiendo ser una amiga del barrio. Nos sentamos a fumar. Ella mintió como una santa, detective.',
+        "Porque mi hermano me llamó tres veces el lunes y la última solo era silencio. Subí al atardecer, antes de que ella se fuera al pase del bar, fingiendo ser una amiga del barrio. Compré dos paquetes de Ducados de camino — los suyos, los que él fumaba — pa' soltarle la lengua. Fumamos un rato, mintió como una santa, y luego se marchó a cantar. Yo me quedé esperándola en la calle, sin saber bien qué hacer.",
       feedback: {
         isUnderstandable: true,
         xpAwarded: 14,
         explanation:
-          'Pregunta directa que sitúa a la testigo en el piso. Anota la marca: Ducados — coincide con el cenicero.',
+          'La testigo se sitúa en el piso al atardecer y confirma su seguimiento. Marca: Ducados — coincide con el cenicero.',
       },
       xpType: 'investigation',
       statement: {
         id: 'mercedes_visited_lucia',
         topic: 'apartment_visit',
-        value: 'Mercedes confirmó haber visitado a Lucía la noche del 14',
+        value: 'Mercedes confirmó haber visitado a Lucía al atardecer del 14',
       },
     },
-    '¿Qué vio al salir del piso?': {
+    '¿Qué vio en la callejuela?': {
       reply:
-        'Bajé temblando. Iba al metro, pero pasé por la callejuela de La Sirena porque oí voces. Vi a Lucía debajo de la farola rota, con las manos manchadas. Ramón ya no se levantaba. Eché a correr hasta la cabina de mi puesto.',
+        'Pasada la medianoche todavía la esperaba cerca del kiosko. La vi salir del bar por la puerta del callejón y la seguí de lejos. Oí voces — la suya y la de mi hermano. Cuando me asomé, Lucía estaba bajo la farola rota con las manos manchadas. Ramón ya no se levantaba. Eché a correr hasta la cabina.',
       feedback: {
         isUnderstandable: true,
         xpAwarded: 16,
-        explanation: 'Testimonio ocular directo. Contrástalo con la coartada de Lucía a las 22:30.',
+        explanation: 'Testimonio ocular directo, post-medianoche. Contrástalo con la coartada de Lucía a las 22:30.',
       },
       xpType: 'investigation',
       statement: {
@@ -140,18 +143,18 @@ export const ARGUMOSA_NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>>
     },
     '¿Qué investigaba su hermano?': {
       reply:
-        'A ella, detective. La estaba pagando para que callara — pero no sé el qué. Algo de un señor del Atocha, un abrigo gris, una foto antigua. Yo lo sé porque al sacudirle la chaqueta cuando venía a recoger el Diario, los papelillos caían de los bolsillos.',
+        "A ella, detective. La estaba pagando pa' que callara sobre una denuncia firmada en el 39 — un nombre que ahora duerme tranquilo en el Atocha, un abrigo gris, la foto vieja que usted habrá visto rota en su papelera. Yo lo sé porque al sacudirle la chaqueta cuando venía a recoger el Diario, los papelillos caían de los bolsillos.",
       feedback: {
         isUnderstandable: true,
         xpAwarded: 14,
         explanation:
-          'La testigo confirma el sobre del «silencio». Vincula Hotel Atocha, abrigo gris y foto en una sola línea.',
+          'Motivo concreto: una denuncia del 39. Vincula Hotel Atocha, abrigo gris y la foto rota de Lucía y Ramón.',
       },
       xpType: 'investigation',
       statement: {
         id: 'mercedes_ramon_investigating',
         topic: 'motive',
-        value: 'Mercedes confirmó que Ramón pagaba a Lucía por silencio',
+        value: 'Mercedes confirmó que Ramón pagaba a Lucía por una denuncia del 39',
       },
     },
     '¿Reconoce este pintalabios?': {
@@ -167,7 +170,7 @@ export const ARGUMOSA_NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>>
     },
     '¿Llamó usted a la policía?': {
       reply:
-        'A las cero cero siete, desde la cabina de aquí mismo. Marqué con los guantes de mi madre. Le dije al sargento de guardia: «En la callejuela de La Sirena. Hay un hombre. Dense prisa.» Y colgué antes de que me preguntara el nombre.',
+        'A las cero cero siete, desde la cabina de aquí mismo. Marqué con los guantes de mi madre. Le dije al sargento: «En la callejuela de La Sirena. Hay un hombre. Dense prisa.» Y colgué antes de que me preguntara el nombre. No quise darlo, detective: los muertos no protegen a los vivos, y el del Atocha aún duerme tranquilo.',
       feedback: {
         isUnderstandable: true,
         xpAwarded: 12,
@@ -216,11 +219,11 @@ export const ARGUMOSA_NPC_OUTCOMES: Record<string, Record<string, ReplyOutcome>>
     },
     'Resumen del caso, por favor.': {
       reply:
-        'Tres escenas, una mentira que se desmadeja: la taberna situó a Lucía a las 23:48, su piso reveló al hombre del Atocha y el sobre del silencio, y Argumosa nos da una testigo que la vio salir del callejón. Le toca a usted decidir cuándo cerrar el círculo.',
+        'Tres escenas, una mentira que se desmadeja: la taberna situó a Lucía a las 23:48, su piso reveló al hombre del Atocha y el sobre del silencio, y Argumosa nos da una testigo que la vio salir del callejón. El del abrigo gris y su denuncia del 39 son para otro expediente — esta noche cerramos el de Lucía. Decida usted cuándo.',
       feedback: {
         isUnderstandable: true,
         xpAwarded: 8,
-        explanation: 'Reconstrucción narrativa del caso. Apóyate en este resumen antes de la acusación.',
+        explanation: 'Reconstrucción narrativa del caso. El hilo del Atocha queda explícitamente reservado.',
       },
       xpType: 'investigation',
     },
