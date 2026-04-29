@@ -22,9 +22,22 @@ export default function GamePage({ params }: { params: Promise<{ locale: string 
   const [accusationOpen, setAccusationOpen] = useState(false);
   const casePhase = useGameStore((state) => state.casePhase);
   const contradictionsCount = useGameStore((state) => state.contradictions.length);
+  const cluesCount = useGameStore((state) => state.discoveredClues.length);
+  const statementsCount = useGameStore((state) => state.recordedStatements.length);
   const currentLocationId = useGameStore((state) => state.currentLocationId);
 
   const accusationEnabled = casePhase === 'accusation' || casePhase === 'resolved';
+
+  const accusationHint =
+    accusationEnabled || casePhase === 'briefing'
+      ? null
+      : cluesCount < 3
+        ? `Reúne al menos 3 pistas (${cluesCount}/3).`
+        : statementsCount === 0
+          ? 'Registra declaraciones interrogando a los sospechosos.'
+          : contradictionsCount === 0
+            ? 'Abre el Diario y vincula una pista con una declaración para destapar una contradicción.'
+            : null;
 
   return (
     <div className="paper" style={{ minHeight: '100vh', padding: '0 32px 40px' }}>
@@ -64,18 +77,35 @@ export default function GamePage({ params }: { params: Promise<{ locale: string 
               <span style={{ color: 'var(--red)', marginLeft: 6 }}>⚡{contradictionsCount}</span>
             )}
           </button>
-          <button
-            type="button"
-            onClick={() => setAccusationOpen(true)}
-            disabled={!accusationEnabled}
-            className="btn-red"
-            style={{
-              opacity: !accusationEnabled ? 0.5 : 1,
-              cursor: !accusationEnabled ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {casePhase === 'resolved' ? 'Ver veredicto' : 'Acusar formalmente'}
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+            <button
+              type="button"
+              onClick={() => setAccusationOpen(true)}
+              disabled={!accusationEnabled}
+              title={accusationHint ?? undefined}
+              className="btn-red"
+              style={{
+                opacity: !accusationEnabled ? 0.5 : 1,
+                cursor: !accusationEnabled ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {casePhase === 'resolved' ? 'Ver veredicto' : 'Acusar formalmente'}
+            </button>
+            {accusationHint && (
+              <span
+                className="byline"
+                style={{
+                  fontSize: 10,
+                  fontStyle: 'italic',
+                  color: 'var(--ink-faded)',
+                  maxWidth: 260,
+                  textAlign: 'right',
+                }}
+              >
+                {accusationHint}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
