@@ -1,21 +1,23 @@
 'use client';
 
+import type { Ref } from 'react';
 import { Es } from '@/components/newsprint/Es';
 import type { SceneClue } from '@/game/content/case001-bilingual';
 
 interface ExaminePopoverProps {
   clue: SceneClue;
   onClose: () => void;
-  onCommit: () => void;
+  ref?: Ref<HTMLDivElement>;
 }
 
-export function ExaminePopover({ clue, onClose, onCommit }: ExaminePopoverProps) {
+export function ExaminePopover({ clue, onClose, ref }: ExaminePopoverProps) {
   const placeAbove = clue.y >= 50;
   const horizontalShift = clue.x < 22 ? -10 : clue.x > 78 ? -90 : -50;
   const verticalShift = placeAbove ? 'calc(-100% - 14px)' : '14px';
 
   return (
     <div
+      ref={ref}
       role="dialog"
       aria-label="Examinar pista"
       onClick={(e) => e.stopPropagation()}
@@ -63,14 +65,6 @@ export function ExaminePopover({ clue, onClose, onCommit }: ExaminePopoverProps)
       <p className="body-serif" style={{ fontSize: 12, marginTop: 6 }}>
         <Es es={clue.examinePrompt} en={clue.examinePromptEn} />
       </p>
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 10 }}>
-        <button type="button" onClick={onClose} className="btn-ghost" style={{ padding: '6px 10px', fontSize: 10 }}>
-          <Es es="Cerrar" en="Close" />
-        </button>
-        <button type="button" onClick={onCommit} className="btn-news" style={{ padding: '6px 10px', fontSize: 10 }}>
-          <Es es="Anotar en el cuaderno" en="Note in the journal" />
-        </button>
-      </div>
     </div>
   );
 }

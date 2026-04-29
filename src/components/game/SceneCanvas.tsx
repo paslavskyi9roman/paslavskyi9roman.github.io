@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { NewsprintPhoto } from '@/components/newsprint/NewsprintPhoto';
 import { ExaminePopover } from '@/components/game/ExaminePopover';
@@ -37,6 +37,26 @@ export function SceneCanvas({
   onExpandClick,
 }: SceneCanvasProps) {
   const [activeClue, setActiveClue] = useState<SceneClue | null>(null);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!activeClue) return;
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as Node | null;
+      if (popoverRef.current && target && !popoverRef.current.contains(target)) {
+        setActiveClue(null);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setActiveClue(null);
+    };
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [activeClue]);
 
   const wrapperStyle: CSSProperties =
     variant === 'inline'
@@ -50,12 +70,7 @@ export function SceneCanvas({
     if (discoveredClues.some((c) => c.id === clue.id)) return;
     playSfx('examine');
     setActiveClue(clue);
-  };
-
-  const handleCommit = () => {
-    if (!activeClue) return;
-    onCommitClue(activeClue);
-    setActiveClue(null);
+    onCommitClue(clue);
   };
 
   return (
@@ -108,7 +123,9 @@ export function SceneCanvas({
         </span>
       )}
 
-      {activeClue && <ExaminePopover clue={activeClue} onClose={() => setActiveClue(null)} onCommit={handleCommit} />}
+      {activeClue && (
+        <ExaminePopover ref={popoverRef} clue={activeClue} onClose={() => setActiveClue(null)} />
+      )}
     </div>
   );
 }
