@@ -3,12 +3,13 @@ import { Es } from '@/components/newsprint/Es';
 import { Masthead } from '@/components/newsprint/Masthead';
 import { NewsprintPhoto } from '@/components/newsprint/NewsprintPhoto';
 import { Stamp } from '@/components/newsprint/Stamp';
-import { CASE_001_BILINGUAL_NPCS, CASE_001_HEADLINE, CASE_001_TICKER } from '@/game/content/case001-bilingual';
-import { CASE_001_NPCS } from '@/game/content/case001';
+import { CASE_ORDER, getCaseDefinition } from '@/game/content/cases';
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const tickerLines = [...CASE_001_TICKER, ...CASE_001_TICKER];
+  const tickerLines = CASE_ORDER.flatMap((caseId) => getCaseDefinition(caseId).ticker);
+  const case001 = getCaseDefinition('case_001');
+  const case002 = getCaseDefinition('case_002');
 
   return (
     <div className="paper" style={{ minHeight: '100vh', padding: '0 60px 40px' }}>
@@ -82,7 +83,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
           <div style={{ marginTop: 22, display: 'flex', gap: 10, alignItems: 'center' }}>
             <Link
-              href={`/${locale}/game`}
+              href={`/${locale}/game?case=case_001`}
               className="btn-news"
               style={{
                 fontSize: 14,
@@ -106,44 +107,57 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               Ver progreso
             </Link>
             <span className="handwritten" style={{ fontSize: 22, marginLeft: 8 }}>
-              nivel · A2–B1 ↗
+              archivo abierto · A2–B1 ↗
             </span>
           </div>
         </article>
 
         <aside>
-          <div
-            style={{
-              position: 'relative',
-              padding: 16,
-              border: '2px solid var(--ink)',
-              background: 'var(--paper-shadow)',
-            }}
-          >
-            <Stamp rotate={4} style={{ position: 'absolute', top: -12, right: -8 }}>
-              Caso 001
-            </Stamp>
-            <span className="kicker">Esta semana</span>
-            <h3 className="headline" style={{ fontSize: 26, lineHeight: 0.95, marginTop: 4 }}>
-              Una Noche en <em style={{ fontStyle: 'italic' }}>Lavapiés</em>
-            </h3>
-            <p className="body-serif" style={{ fontSize: 13, marginTop: 8 }}>
-              Un periodista muerto. Tres testigos. Cuatro pistas. Lo que tú digas, en español, decide la sentencia.
-            </p>
-            <div
-              style={{
-                marginTop: 12,
-                fontFamily: 'var(--mono)',
-                fontSize: 11,
-                color: 'var(--ink-soft)',
-              }}
-            >
-              ⌁ Tiempo medio: 25–40 min
-              <br />
-              ⌁ Nivel: intermedio (A2–B1)
-              <br />⌁ Idiomas: ES (con ayuda EN)
-            </div>
-          </div>
+          {CASE_ORDER.map((caseId, index) => {
+            const caseDef = getCaseDefinition(caseId);
+            return (
+              <div
+                key={caseId}
+                style={{
+                  position: 'relative',
+                  padding: 16,
+                  border: '2px solid var(--ink)',
+                  background: index === 0 ? 'var(--paper-shadow)' : 'var(--paper)',
+                  marginTop: index === 0 ? 0 : 16,
+                }}
+              >
+                <Stamp rotate={index === 0 ? 4 : -4} style={{ position: 'absolute', top: -12, right: -8 }}>
+                  Caso {caseDef.number}
+                </Stamp>
+                <span className="kicker">{caseDef.menu.eyebrow}</span>
+                <h3 className="headline" style={{ fontSize: 26, lineHeight: 0.95, marginTop: 4 }}>
+                  {caseDef.title.es}
+                </h3>
+                <p className="body-serif" style={{ fontSize: 13, marginTop: 8 }}>
+                  {caseDef.menu.summary}
+                </p>
+                <div
+                  style={{
+                    marginTop: 12,
+                    fontFamily: 'var(--mono)',
+                    fontSize: 11,
+                    color: 'var(--ink-soft)',
+                  }}
+                >
+                  {caseDef.menu.meta.map((line) => (
+                    <div key={line}>⌁ {line}</div>
+                  ))}
+                </div>
+                <Link
+                  href={`/${locale}/game?case=${caseId}`}
+                  className="btn-news"
+                  style={{ display: 'inline-block', marginTop: 14, textDecoration: 'none', fontSize: 12 }}
+                >
+                  Abrir expediente
+                </Link>
+              </div>
+            );
+          })}
 
           <div
             style={{
@@ -155,52 +169,54 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           >
             <span className="kicker">Reparto</span>
             <hr className="rule" style={{ marginTop: 4 }} />
-            {CASE_001_NPCS.map((npc) => {
-              const bilingual = CASE_001_BILINGUAL_NPCS[npc.id];
-              return (
-                <div
-                  key={npc.id}
-                  style={{
-                    display: 'flex',
-                    gap: 10,
-                    padding: '8px 0',
-                    borderBottom: '1px dotted var(--ink-faded)',
-                  }}
-                >
+            {case002.npcs
+              .filter((npc) => npc.id !== 'npc_inspectora_ruiz')
+              .map((npc) => {
+                const bilingual = case002.bilingualNpcs[npc.id];
+                return (
                   <div
+                    key={npc.id}
                     style={{
-                      width: 44,
-                      height: 56,
-                      flexShrink: 0,
-                      position: 'relative',
+                      display: 'flex',
+                      gap: 10,
+                      padding: '8px 0',
+                      borderBottom: '1px dotted var(--ink-faded)',
                     }}
                   >
-                    <NewsprintPhoto
-                      src={bilingual?.portrait ?? `/assets/characters/${npc.id}.png`}
-                      alt={npc.name}
-                      height={56}
-                    />
-                  </div>
-                  <div>
                     <div
                       style={{
-                        fontFamily: 'var(--display)',
-                        fontWeight: 800,
-                        fontSize: 14,
+                        width: 44,
+                        height: 56,
+                        flexShrink: 0,
+                        position: 'relative',
                       }}
                     >
-                      {npc.name}
+                      <NewsprintPhoto
+                        src={bilingual?.portrait ?? `/assets/characters/${npc.id}.png`}
+                        alt={npc.name}
+                        height={56}
+                      />
                     </div>
-                    <div className="byline" style={{ fontSize: 9 }}>
-                      {npc.role}
+                    <div>
+                      <div
+                        style={{
+                          fontFamily: 'var(--display)',
+                          fontWeight: 800,
+                          fontSize: 14,
+                        }}
+                      >
+                        {npc.name}
+                      </div>
+                      <div className="byline" style={{ fontSize: 9 }}>
+                        {npc.role}
+                      </div>
+                      <p className="body-serif" style={{ fontSize: 11, marginTop: 2, color: 'var(--ink-soft)' }}>
+                        {bilingual?.tagline ?? npc.openingLine}
+                      </p>
                     </div>
-                    <p className="body-serif" style={{ fontSize: 11, marginTop: 2, color: 'var(--ink-soft)' }}>
-                      {bilingual?.tagline ?? npc.openingLine}
-                    </p>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
 
           <div
@@ -234,7 +250,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </div>
 
       <p className="byline" style={{ marginTop: 32, textAlign: 'center', opacity: 0.7 }}>
-        {CASE_001_HEADLINE.es} — {CASE_001_HEADLINE.en}
+        {case001.title.es} — {case002.title.es}
       </p>
     </div>
   );

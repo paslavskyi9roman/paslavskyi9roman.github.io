@@ -3,53 +3,9 @@
 import { useState } from 'react';
 import { Es } from '@/components/newsprint/Es';
 import { Stamp } from '@/components/newsprint/Stamp';
-import {
-  CASE_001_BILINGUAL_NPCS,
-  CASE_001_BILINGUAL_REPLIES,
-  CASE_001_SCENE_CLUES,
-} from '@/game/content/case001-bilingual';
-import { APARTMENT_BILINGUAL_REPLIES, APARTMENT_SCENE_CLUES } from '@/game/content/case001-apartment-bilingual';
-import { ARGUMOSA_BILINGUAL_REPLIES, ARGUMOSA_SCENE_CLUES } from '@/game/content/case001-argumosa-bilingual';
-import { NPC_OUTCOMES } from '@/game/content/case001';
-import { APARTMENT_NPC_OUTCOMES } from '@/game/content/case001-apartment';
-import { ARGUMOSA_NPC_OUTCOMES } from '@/game/content/case001-argumosa';
+import { getAllSceneClues, getCaseDefinition, getStatementValueTranslations } from '@/game/content/cases';
 import { useGameStore } from '@/store/useGameStore';
-import type { LocationId } from '@/game/content/locations';
-import { LOCATIONS, LOCATION_ORDER } from '@/game/content/locations';
-
-const ALL_SCENE_CLUES = [...CASE_001_SCENE_CLUES, ...APARTMENT_SCENE_CLUES, ...ARGUMOSA_SCENE_CLUES];
-
-const STATEMENT_VALUE_EN: Record<string, string> = (() => {
-  const map: Record<string, string> = {};
-  const sources: Array<[typeof NPC_OUTCOMES, typeof CASE_001_BILINGUAL_REPLIES]> = [
-    [NPC_OUTCOMES, CASE_001_BILINGUAL_REPLIES],
-    [APARTMENT_NPC_OUTCOMES, APARTMENT_BILINGUAL_REPLIES],
-    [ARGUMOSA_NPC_OUTCOMES, ARGUMOSA_BILINGUAL_REPLIES],
-  ];
-  for (const [outcomes, bilingual] of sources) {
-    for (const [npcId, replies] of Object.entries(outcomes)) {
-      for (const [question, outcome] of Object.entries(replies)) {
-        const en = bilingual[npcId]?.[question]?.statementValueEn;
-        if (outcome.statement && en) {
-          map[outcome.statement.id] = en;
-        }
-      }
-    }
-  }
-  return map;
-})();
-
-const CLUE_LOCATION: Record<string, LocationId> = {
-  ...Object.fromEntries(CASE_001_SCENE_CLUES.map((c) => [c.id, 'bar_interior' as LocationId])),
-  ...Object.fromEntries(APARTMENT_SCENE_CLUES.map((c) => [c.id, 'lucia_apartment' as LocationId])),
-  ...Object.fromEntries(ARGUMOSA_SCENE_CLUES.map((c) => [c.id, 'argumosa_kiosk' as LocationId])),
-};
-
-const NPC_LOCATION: Record<string, LocationId> = {
-  ...Object.fromEntries(Object.keys(NPC_OUTCOMES).map((id) => [id, 'bar_interior' as LocationId])),
-  ...Object.fromEntries(Object.keys(APARTMENT_NPC_OUTCOMES).map((id) => [id, 'lucia_apartment' as LocationId])),
-  ...Object.fromEntries(Object.keys(ARGUMOSA_NPC_OUTCOMES).map((id) => [id, 'argumosa_kiosk' as LocationId])),
-};
+import type { LocationId } from '@/types/game';
 
 interface ClueJournalProps {
   open: boolean;
@@ -57,6 +13,7 @@ interface ClueJournalProps {
 }
 
 export function ClueJournal({ open, onClose }: ClueJournalProps) {
+  const currentCaseId = useGameStore((state) => state.currentCaseId);
   const discoveredClues = useGameStore((state) => state.discoveredClues);
   const recordedStatements = useGameStore((state) => state.recordedStatements);
   const contradictions = useGameStore((state) => state.contradictions);
@@ -67,12 +24,21 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
 
   if (!open) return null;
 
-  const totalSceneClues = ALL_SCENE_CLUES.length;
+  const caseDef = getCaseDefinition(currentCaseId);
+  const allSceneClues = getAllSceneClues(caseDef);
+  const totalSceneClues = allSceneClues.length;
+  const statementValueEn = getStatementValueTranslations(caseDef);
 
-  const sceneClueLookup = new Map(ALL_SCENE_CLUES.map((clue) => [clue.id, clue]));
+  const sceneClueLookup = new Map(allSceneClues.map((clue) => [clue.id, clue]));
+  const clueLocation = Object.fromEntries(
+    caseDef.locationOrder.flatMap((locId) => (caseDef.sceneCluesByLocation[locId] ?? []).map((c) => [c.id, locId])),
+  ) as Record<string, LocationId>;
+  const npcLocation = Object.fromEntries(
+    caseDef.locationOrder.flatMap((locId) => (caseDef.locationNpcIds[locId] ?? []).map((npcId) => [npcId, locId])),
+  ) as Record<string, LocationId>;
 
   const cluesByLocation = discoveredClues.reduce<Record<string, typeof discoveredClues>>((acc, clue) => {
-    const locId = CLUE_LOCATION[clue.id];
+    const locId = clueLocation[clue.id];
     if (!locId) {
       if (process.env.NODE_ENV !== 'production') {
         console.warn('[ClueJournal] unmapped clue', clue.id);
@@ -85,7 +51,7 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
 
   const statementsByLocation = recordedStatements.reduce<Record<string, typeof recordedStatements>>(
     (acc, statement) => {
-      const locId = NPC_LOCATION[statement.npcId];
+      const locId = npcLocation[statement.npcId];
       if (!locId) {
         if (process.env.NODE_ENV !== 'production') {
           console.warn('[ClueJournal] unmapped NPC for statement', statement.npcId);
@@ -99,7 +65,7 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
   );
 
   const contradictionsByLocation = contradictions.reduce<Record<string, typeof contradictions>>((acc, c) => {
-    const locId = NPC_LOCATION[c.npcId];
+    const locId = npcLocation[c.npcId];
     if (!locId) {
       if (process.env.NODE_ENV !== 'production') {
         console.warn('[ClueJournal] unmapped NPC for contradiction', c.npcId);
@@ -189,7 +155,7 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
         </div>
 
         <div style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {LOCATION_ORDER.map((locId) => {
+          {caseDef.locationOrder.map((locId) => {
             const locClues = cluesByLocation[locId] ?? [];
             const locStatements = statementsByLocation[locId] ?? [];
             const locContradictions = contradictionsByLocation[locId] ?? [];
@@ -197,7 +163,7 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
               return null;
             }
             const isCurrent = locId === currentLocationId;
-            const loc = LOCATIONS[locId];
+            const loc = caseDef.locations[locId]!;
             const summary = (
               <span
                 style={{
@@ -409,7 +375,7 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
                       }, {});
                       return Object.entries(grouped).map(([npcId, list]) => {
                         const npc = npcs.find((n) => n.id === npcId);
-                        const portrait = CASE_001_BILINGUAL_NPCS[npcId]?.portrait ?? `/assets/characters/${npcId}.png`;
+                        const portrait = caseDef.bilingualNpcs[npcId]?.portrait ?? `/assets/characters/${npcId}.png`;
                         return (
                           <div
                             key={npcId}
@@ -447,11 +413,7 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
                                   <span className="byline" style={{ fontSize: 9 }}>
                                     [{s.topic}]
                                   </span>{' '}
-                                  {STATEMENT_VALUE_EN[s.id] ? (
-                                    <Es es={s.value} en={STATEMENT_VALUE_EN[s.id]!} />
-                                  ) : (
-                                    s.value
-                                  )}
+                                  {statementValueEn[s.id] ? <Es es={s.value} en={statementValueEn[s.id]!} /> : s.value}
                                 </li>
                               ))}
                             </ul>
@@ -477,7 +439,7 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
                       const clue = discoveredClues.find((x) => x.id === c.clueId);
                       const clueScene = sceneClueLookup.get(c.clueId);
                       const stmt = recordedStatements.find((x) => x.id === c.statementId);
-                      const stmtEn = STATEMENT_VALUE_EN[c.statementId];
+                      const stmtEn = statementValueEn[c.statementId];
                       const npc = npcs.find((x) => x.id === c.npcId);
                       return (
                         <div

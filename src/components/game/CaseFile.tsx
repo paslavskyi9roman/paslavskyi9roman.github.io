@@ -3,7 +3,7 @@
 import { Es } from '@/components/newsprint/Es';
 import { NewsprintPhoto } from '@/components/newsprint/NewsprintPhoto';
 import { Stamp } from '@/components/newsprint/Stamp';
-import { CASE_001_VICTIM, LESSON_BILINGUAL } from '@/game/content/case001-bilingual';
+import { getCaseDefinition } from '@/game/content/cases';
 import { useGameStore } from '@/store/useGameStore';
 
 const xpTypeLabel: Record<'vocabulary' | 'grammar' | 'investigation', string> = {
@@ -13,9 +13,11 @@ const xpTypeLabel: Record<'vocabulary' | 'grammar' | 'investigation', string> = 
 };
 
 export function CaseFile() {
+  const currentCaseId = useGameStore((s) => s.currentCaseId);
   const latestFeedback = useGameStore((s) => s.latestFeedback);
   const lessons = useGameStore((s) => s.lessons);
   const casePhase = useGameStore((s) => s.casePhase);
+  const caseDef = getCaseDefinition(currentCaseId);
 
   return (
     <aside>
@@ -37,10 +39,10 @@ export function CaseFile() {
       </div>
 
       <NewsprintPhoto
-        src="/assets/characters/npc_ramon_quintero.png"
-        alt={CASE_001_VICTIM.name}
+        src={caseDef.victim.portrait}
+        alt={caseDef.victim.name}
         height={140}
-        caption={`${CASE_001_VICTIM.name.toUpperCase()} · ${CASE_001_VICTIM.role.es.toUpperCase()}`}
+        caption={`${caseDef.victim.name.toUpperCase()} · ${caseDef.victim.role.es.toUpperCase()}`}
       />
 
       <div
@@ -59,13 +61,13 @@ export function CaseFile() {
             lineHeight: 1.05,
           }}
         >
-          {CASE_001_VICTIM.name}
+          {caseDef.victim.name}
         </div>
         <div className="byline" style={{ marginTop: 2 }}>
-          {CASE_001_VICTIM.role.es}
+          {caseDef.victim.role.es}
         </div>
         <p className="body-serif" style={{ marginTop: 6, fontSize: 12 }}>
-          <Es es={CASE_001_VICTIM.fate.es} en={CASE_001_VICTIM.fate.en} />
+          <Es es={caseDef.victim.fate.es} en={caseDef.victim.fate.en} />
         </p>
         <div
           style={{
@@ -75,7 +77,7 @@ export function CaseFile() {
             color: 'var(--ink-soft)',
           }}
         >
-          Hora estimada: <strong>{CASE_001_VICTIM.time}</strong>
+          Hora estimada: <strong>{caseDef.victim.time}</strong>
         </div>
       </div>
 
@@ -120,7 +122,7 @@ export function CaseFile() {
         </span>
         <ul style={{ listStyle: 'none', padding: 0, margin: '6px 0 0' }}>
           {lessons.map((l) => {
-            const en = LESSON_BILINGUAL[l.id];
+            const en = caseDef.lessonBilingual[l.id];
             return (
               <li
                 key={l.id}
