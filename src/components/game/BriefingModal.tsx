@@ -2,12 +2,15 @@
 
 import { Es } from '@/components/newsprint/Es';
 import { Stamp } from '@/components/newsprint/Stamp';
+import { getCaseDefinition } from '@/game/content/cases';
 import { useGameStore } from '@/store/useGameStore';
 
 export function BriefingModal() {
+  const currentCaseId = useGameStore((state) => state.currentCaseId);
   const casePhase = useGameStore((state) => state.casePhase);
   const briefingSeen = useGameStore((state) => state.briefingSeen);
   const dismissBriefing = useGameStore((state) => state.dismissBriefing);
+  const caseDef = getCaseDefinition(currentCaseId);
 
   if (casePhase !== 'briefing' || briefingSeen) return null;
 
@@ -43,24 +46,17 @@ export function BriefingModal() {
         <div style={{ position: 'absolute', top: 18, right: 18 }}>
           <Stamp rotate={6}>Confidencial</Stamp>
         </div>
-        <span className="kicker">Telegrama urgente · Jefatura Superior · Madrid</span>
+        <span className="kicker">{caseDef.briefing.kicker}</span>
         <h1 id="briefing-title" className="headline" style={{ fontSize: 48, marginTop: 6, lineHeight: 0.95 }}>
-          Una Noche en <em style={{ fontStyle: 'italic', color: 'var(--red-deep)' }}>Lavapiés</em>
+          {caseDef.briefing.title.es}
         </h1>
         <hr className="rule-fancy" style={{ margin: '14px 0' }} />
         <div className="cols-2 body-serif dropcap" style={{ fontSize: 14 }}>
-          <p>
-            <strong>MADRID, 14·X·1953.</strong> Antes del amanecer, el cuerpo del periodista{' '}
-            <Es es="Ramón Quintero" en="Ramón Quintero" /> apareció en el callejón tras la{' '}
-            <Es es="Taberna La Sirena" en="The Mermaid Tavern" />, en pleno barrio de Lavapiés. La{' '}
-            <Es es="Inspectora Ruiz" en="Inspector Ruiz" /> le ha llamado a usted, detective, para coser las grietas de
-            tres declaraciones.
-          </p>
-          <p>
-            Tres testigos. Cuatro pistas físicas. Una <Es es="coartada" en="alibi" /> que no encaja con la hora. Su
-            trabajo: hablar con cada uno en <Es es="español claro" en="clear Spanish" />, recoger las contradicciones y,
-            cuando reúna pruebas suficientes, formular la <Es es="acusación formal" en="formal accusation" />.
-          </p>
+          {caseDef.briefing.paragraphs.map((paragraph) => (
+            <p key={paragraph.es}>
+              <Es es={paragraph.es} en={paragraph.en} />
+            </p>
+          ))}
         </div>
 
         <div
@@ -81,16 +77,9 @@ export function BriefingModal() {
               lineHeight: 1.65,
             }}
           >
-            <li>Habla con los tres testigos. Empieza por hora, lugar y compañía.</li>
-            <li>Examina la escena. Cada punto rojo del plano oculta una pista.</li>
-            <li>
-              Las pistas físicas <em>nunca</em> mienten — pero los testigos sí.
-            </li>
-            <li>
-              Cuando aparezca el sello «
-              <span style={{ color: 'var(--red-deep)', fontWeight: 700 }}>LISTO PARA ACUSAR</span>
-              », pulsa <em>Acusar</em>.
-            </li>
+            {caseDef.briefing.instructions.map((instruction) => (
+              <li key={instruction}>{instruction}</li>
+            ))}
           </ol>
         </div>
 
@@ -117,7 +106,7 @@ export function BriefingModal() {
             color: 'var(--ink-faded)',
           }}
         >
-          firmado · Insp. M. Ruiz, Brigada Criminal
+          {caseDef.briefing.signature}
         </div>
       </div>
     </div>

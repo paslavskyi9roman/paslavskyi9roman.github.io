@@ -1,12 +1,14 @@
 'use client';
 
-import { LOCATION_ORDER, LOCATIONS, isLocationUnlocked } from '@/game/content/locations';
+import { getCaseDefinition } from '@/game/content/cases';
 import { useGameStore } from '@/store/useGameStore';
 
 export function LocationTabs() {
+  const currentCaseId = useGameStore((s) => s.currentCaseId);
   const currentLocationId = useGameStore((s) => s.currentLocationId);
   const completedQuestIds = useGameStore((s) => s.completedQuestIds);
   const setLocation = useGameStore((s) => s.setLocation);
+  const caseDef = getCaseDefinition(currentCaseId);
 
   return (
     <div
@@ -20,10 +22,11 @@ export function LocationTabs() {
         background: 'var(--paper-shadow)',
       }}
     >
-      {LOCATION_ORDER.map((id) => {
-        const loc = LOCATIONS[id];
+      {caseDef.locationOrder.map((id) => {
+        const loc = caseDef.locations[id]!;
         const active = currentLocationId === id;
-        const unlocked = isLocationUnlocked(id, completedQuestIds);
+        const required = caseDef.locationRequiredQuests[id] ?? [];
+        const unlocked = required.every((questId) => completedQuestIds.includes(questId));
         return (
           <button
             key={id}
@@ -41,7 +44,8 @@ export function LocationTabs() {
               padding: '8px 10px',
               background: active ? 'var(--paper)' : 'transparent',
               border: 'none',
-              borderRight: id === LOCATION_ORDER[LOCATION_ORDER.length - 1] ? 'none' : '1px solid var(--ink)',
+              borderRight:
+                id === caseDef.locationOrder[caseDef.locationOrder.length - 1] ? 'none' : '1px solid var(--ink)',
               cursor: unlocked ? 'pointer' : 'not-allowed',
               fontFamily: 'var(--sans)',
               fontSize: 11,

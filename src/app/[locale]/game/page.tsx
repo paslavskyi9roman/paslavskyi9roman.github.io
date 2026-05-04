@@ -1,13 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { use, useState } from 'react';
+import { use, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Masthead } from '@/components/newsprint/Masthead';
 import { AccusationOverlay } from '@/components/game/AccusationOverlay';
-import { ApartmentScene } from '@/components/game/ApartmentScene';
-import { ArgumosaScene } from '@/components/game/ArgumosaScene';
-import { BarScene } from '@/components/game/BarScene';
 import { BriefingModal } from '@/components/game/BriefingModal';
+import { CaseScene } from '@/components/game/CaseScene';
 import { CaseFile } from '@/components/game/CaseFile';
 import { ClueJournal } from '@/components/game/ClueJournal';
 import { DetectiveNotebook } from '@/components/game/DetectiveNotebook';
@@ -15,16 +14,27 @@ import { InterrogationPanel } from '@/components/game/InterrogationPanel';
 import { LocationTabs } from '@/components/game/LocationTabs';
 import { useGameStore } from '@/store/useGameStore';
 import { playSfx } from '@/lib/sfx';
+import { CASES, getCaseDefinition } from '@/game/content/cases';
 
 export default function GamePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = use(params);
+  const searchParams = useSearchParams();
   const [journalOpen, setJournalOpen] = useState(false);
   const [accusationOpen, setAccusationOpen] = useState(false);
+  const currentCaseId = useGameStore((state) => state.currentCaseId);
+  const selectCase = useGameStore((state) => state.selectCase);
   const casePhase = useGameStore((state) => state.casePhase);
   const contradictionsCount = useGameStore((state) => state.contradictions.length);
   const cluesCount = useGameStore((state) => state.discoveredClues.length);
   const statementsCount = useGameStore((state) => state.recordedStatements.length);
-  const currentLocationId = useGameStore((state) => state.currentLocationId);
+  const caseDef = getCaseDefinition(currentCaseId);
+
+  useEffect(() => {
+    const requestedCaseId = searchParams.get('case');
+    if (requestedCaseId && CASES[requestedCaseId] && requestedCaseId !== currentCaseId) {
+      selectCase(requestedCaseId);
+    }
+  }, [currentCaseId, searchParams, selectCase]);
 
   const accusationEnabled = casePhase === 'accusation' || casePhase === 'resolved';
 
@@ -55,12 +65,12 @@ export default function GamePage({ params }: { params: Promise<{ locale: string 
         }}
       >
         <div>
-          <span className="kicker">Expediente Nº 001 · Lavapiés</span>
+          <span className="kicker">Expediente Nº {caseDef.number}</span>
           <h2 className="headline" style={{ fontSize: 38, marginTop: 2 }}>
-            Una Noche en <em style={{ fontStyle: 'italic', color: 'var(--red-deep)' }}>Lavapiés</em>
+            {caseDef.title.es}
           </h2>
           <p className="byline" style={{ marginTop: 2 }}>
-            Por el Detective · 14·X·1953
+            Por el Detective · {caseDef.date}
           </p>
         </div>
         <div className="flex gap-3 items-center">
@@ -121,13 +131,7 @@ export default function GamePage({ params }: { params: Promise<{ locale: string 
         <DetectiveNotebook />
         <section>
           <LocationTabs />
-          {currentLocationId === 'argumosa_kiosk' ? (
-            <ArgumosaScene />
-          ) : currentLocationId === 'lucia_apartment' ? (
-            <ApartmentScene />
-          ) : (
-            <BarScene />
-          )}
+          <CaseScene />
           <InterrogationPanel />
         </section>
         <CaseFile />
