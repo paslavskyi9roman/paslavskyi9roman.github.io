@@ -3,11 +3,11 @@
 import type { Quest } from '@/types/game';
 import { Es } from '@/components/newsprint/Es';
 import { MeterRow } from '@/components/newsprint/MeterRow';
-import { CASE_001_VOCABULARY, QUEST_BILINGUAL } from '@/game/content/case001-bilingual';
-import { LOCATIONS, LOCATION_ORDER } from '@/game/content/locations';
+import { getCaseDefinition } from '@/game/content/cases';
 import { useGameStore } from '@/store/useGameStore';
 
 export function DetectiveNotebook() {
+  const currentCaseId = useGameStore((s) => s.currentCaseId);
   const vocabularyXp = useGameStore((s) => s.vocabularyXp);
   const grammarXp = useGameStore((s) => s.grammarXp);
   const investigationXp = useGameStore((s) => s.investigationXp);
@@ -17,10 +17,11 @@ export function DetectiveNotebook() {
   const quests = useGameStore((s) => s.quests);
   const completedQuestIds = useGameStore((s) => s.completedQuestIds);
   const currentLocationId = useGameStore((s) => s.currentLocationId);
+  const caseDef = getCaseDefinition(currentCaseId);
 
   const renderQuestRow = (q: Quest) => {
     const done = completedQuestIds.includes(q.id);
-    const en = QUEST_BILINGUAL[q.id];
+    const en = caseDef.questBilingual[q.id];
     return (
       <li
         key={q.id}
@@ -96,7 +97,7 @@ export function DetectiveNotebook() {
           Total · {totalXp} XP
         </div>
         <div className="byline" style={{ fontSize: 9 }}>
-          Pistas {discoveredClues.length}/4 · Declaraciones {recordedStatements.length} · ⚡ {contradictions.length}
+          Pistas {discoveredClues.length} · Declaraciones {recordedStatements.length} · ⚡ {contradictions.length}
         </div>
       </div>
 
@@ -105,12 +106,12 @@ export function DetectiveNotebook() {
         <span className="kicker">
           <Es es="Misiones" en="Quests" />
         </span>
-        {LOCATION_ORDER.map((locId) => {
+        {caseDef.locationOrder.map((locId) => {
           const locQuests = quests.filter((q) => q.locationId === locId);
           if (locQuests.length === 0) return null;
           const isCurrent = locId === currentLocationId;
           const doneCount = locQuests.filter((q) => completedQuestIds.includes(q.id)).length;
-          const loc = LOCATIONS[locId];
+          const loc = caseDef.locations[locId]!;
           const summary = (
             <span
               style={{
@@ -153,7 +154,7 @@ export function DetectiveNotebook() {
             marginTop: 6,
           }}
         >
-          {CASE_001_VOCABULARY.map((v) => (
+          {caseDef.vocabulary.map((v) => (
             <div key={v.es} style={{ fontFamily: 'var(--body)', fontSize: 12, lineHeight: 1.3 }}>
               <span style={{ fontWeight: 700, color: 'var(--ink)' }}>{v.es}</span>
               <span style={{ color: 'var(--ink-faded)' }}> · {v.en}</span>

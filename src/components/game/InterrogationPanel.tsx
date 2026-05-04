@@ -3,13 +3,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { DialogueLine } from '@/components/newsprint/DialogueLine';
 import { NewsprintPhoto } from '@/components/newsprint/NewsprintPhoto';
-import {
-  ALL_BILINGUAL_REPLIES,
-  ALL_NPC_OUTCOMES,
-  ALL_QUICK_REPLY_CLUE_GATES,
-  APARTMENT_STATEMENT_IDS,
-  getBilingualNpc,
-} from '@/game/content/case001-merged';
+import { getBilingualNpcForCase, getCaseDefinition } from '@/game/content/cases';
 import { DialogueResponseSchema } from '@/lib/dialogue/schema';
 import { useGameStore } from '@/store/useGameStore';
 import type { DialogueMessage } from '@/types/game';
@@ -30,8 +24,8 @@ export function InterrogationPanel() {
     applyFeedback,
     recordStatement,
     recordUsedReply,
-    completeQuest,
   } = useGameStore();
+  const caseDef = getCaseDefinition(currentCaseId);
   const [freeText, setFreeText] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -51,14 +45,14 @@ export function InterrogationPanel() {
 
   const availableQuickReplies = useMemo(() => {
     if (!selectedNpc) return [] as readonly string[];
-    const gates = ALL_QUICK_REPLY_CLUE_GATES[selectedNpc.id] ?? {};
+    const gates = caseDef.quickReplyClueGates[selectedNpc.id] ?? {};
     return selectedNpc.quickReplies.filter((q) => {
       if (usedReplies.has(q)) return false;
       const requiredClue = gates[q];
       if (requiredClue && !discoveredClueIds.has(requiredClue)) return false;
       return true;
     });
-  }, [selectedNpc, usedReplies, discoveredClueIds]);
+  }, [caseDef.quickReplyClueGates, selectedNpc, usedReplies, discoveredClueIds]);
 
   const visibleLines = useMemo(() => {
     if (!selectedNpc) return [] as DialogueMessage[];
@@ -69,45 +63,18 @@ export function InterrogationPanel() {
 
   const handleQuickReply = (replyText: string) => {
     if (!selectedNpc) return;
-    const outcome = ALL_NPC_OUTCOMES[selectedNpc.id]?.[replyText];
+    const outcome = caseDef.outcomes[selectedNpc.id]?.[replyText];
     if (!outcome) return;
-
-    const contradictionsBefore = useGameStore.getState().contradictions.length;
 
     addPlayerLine(replyText);
     addNpcLine(outcome.reply, { id: selectedNpc.id, name: selectedNpc.name });
     applyFeedback(outcome.feedback, outcome.xpType);
-    recordUsedReply(selectedNpc.id, replyText);
 
     if (outcome.statement) {
       recordStatement({ ...outcome.statement, npcId: selectedNpc.id, sourceReply: replyText });
     }
 
-    if (selectedNpc.id === 'npc_lucia_vargas' && replyText === '¿A qué hora llegaste a casa?') {
-      completeQuest('q1');
-    }
-    if (selectedNpc.id === 'npc_diego_torres' && replyText === '¿Quién pagó la última ronda?') {
-      completeQuest('q3');
-    }
-
-    // q5: an apartment-borne statement that just produced a fresh contradiction.
-    if (
-      currentLocationId === 'lucia_apartment' &&
-      selectedNpc.id === 'npc_lucia_vargas' &&
-      outcome.statement &&
-      APARTMENT_STATEMENT_IDS.has(outcome.statement.id)
-    ) {
-      const contradictionsAfter = useGameStore.getState().contradictions.length;
-      if (contradictionsAfter > contradictionsBefore) {
-        completeQuest('q5');
-      }
-    }
-
-    // q7: any statement Mercedes provides at the Argumosa kiosk counts as
-    // taking her testimony on record.
-    if (currentLocationId === 'argumosa_kiosk' && selectedNpc.id === 'npc_mercedes_quintero' && outcome.statement) {
-      completeQuest('q7');
-    }
+    recordUsedReply(selectedNpc.id, replyText);
   };
 
   const submitFreeText = async (event: FormEvent) => {
@@ -154,8 +121,8 @@ export function InterrogationPanel() {
     }
   };
 
-  const npcBilingual = selectedNpc ? getBilingualNpc(selectedNpc.id, currentLocationId) : undefined;
-  const replyTranslations = selectedNpc ? ALL_BILINGUAL_REPLIES[selectedNpc.id] : undefined;
+  const npcBilingual = selectedNpc ? getBilingualNpcForCase(caseDef, selectedNpc.id, currentLocationId) : undefined;
+  const replyTranslations = selectedNpc ? caseDef.bilingualReplies[selectedNpc.id] : undefined;
 
   return (
     <div
@@ -268,13 +235,13 @@ export function InterrogationPanel() {
             // player quick-replies and NPC replies use bilingual reply table.
             let en: string | undefined;
             if (selectedNpc) {
-              const replies = ALL_BILINGUAL_REPLIES[selectedNpc.id];
+              const replies = caseDef.bilingualReplies[selectedNpc.id];
               if (role === 'player' && replies?.[line.text]) {
                 en = replies[line.text]?.qEn;
               } else if (role === 'npc') {
-                const opening = getBilingualNpc(line.npcId ?? '', currentLocationId)?.openingEn;
+                const opening = getBilingualNpcForCase(caseDef, line.npcId ?? '', currentLocationId)?.openingEn;
                 const replyEntry = Object.values(replies ?? {}).find(
-                  (r) => ALL_NPC_OUTCOMES[selectedNpc.id]?.[r.q]?.reply === line.text,
+                  (r) => caseDef.outcomes[selectedNpc.id]?.[r.q]?.reply === line.text,
                 );
                 en = replyEntry?.aEn ?? opening;
               }

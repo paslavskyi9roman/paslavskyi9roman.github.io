@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useGameStore } from './useGameStore';
 import { CASE_001_CULPRIT } from '@/game/content/case001';
+import { getCaseDefinition } from '@/game/content/cases';
 import { type NpcStatement } from '@/types/game';
 
 const resetStore = () => {
-  useGameStore.persist.clearStorage();
-  useGameStore.setState({
+  const caseDef = getCaseDefinition('case_001');
+  const npcs = caseDef.locationNpcIds.bar_interior!.map((id) => caseDef.npcs.find((n) => n.id === id)!);
+  const progress = {
     currentLocationId: 'bar_interior',
+    selectedNpcId: npcs[0]?.id ?? null,
     completedQuestIds: [],
     dialogueHistory: [],
     discoveredClues: [],
@@ -14,12 +17,23 @@ const resetStore = () => {
     grammarXp: 0,
     investigationXp: 0,
     latestFeedback: null,
-    casePhase: 'briefing',
+    casePhase: 'briefing' as const,
     caseResolution: null,
     accusedNpcId: null,
     recordedStatements: [],
     contradictions: [],
     briefingSeen: false,
+    usedQuickReplies: {},
+  };
+  useGameStore.persist.clearStorage();
+  useGameStore.setState({
+    currentCaseId: 'case_001',
+    progressByCase: { case_001: progress },
+    ...progress,
+    npcs,
+    quests: caseDef.quests,
+    lessons: caseDef.lessons,
+    selectedNpc: npcs[0] ?? null,
   });
 };
 
@@ -87,14 +101,15 @@ describe('useGameStore', () => {
     const storageRaw = localStorage.getItem('madrid-noir-v1');
     expect(storageRaw).toBeTruthy();
     const parsed = JSON.parse(storageRaw!) as { state: Record<string, unknown> };
-    expect(parsed.state.investigationXp).toBe(6);
+    const progress = (parsed.state.progressByCase as Record<string, Record<string, unknown>>).case_001;
+    expect(progress?.investigationXp).toBe(6);
     expect(parsed.state).not.toHaveProperty('selectedNpc');
     expect(parsed.state).not.toHaveProperty('latestFeedback');
-    expect(parsed.state.discoveredClues).toEqual([{ id: 'clue_persist', title: 'persisted', description: '' }]);
-    expect(parsed.state.casePhase).toBe('investigation');
-    expect(parsed.state.briefingSeen).toBe(true);
-    expect(parsed.state).toHaveProperty('recordedStatements');
-    expect(parsed.state).toHaveProperty('contradictions');
+    expect(progress?.discoveredClues).toEqual([{ id: 'clue_persist', title: 'persisted', description: '' }]);
+    expect(progress?.casePhase).toBe('investigation');
+    expect(progress?.briefingSeen).toBe(true);
+    expect(progress).toHaveProperty('recordedStatements');
+    expect(progress).toHaveProperty('contradictions');
   });
 
   it('dismissBriefing transitions briefing → investigation and is idempotent', () => {
@@ -321,5 +336,50 @@ describe('useGameStore', () => {
     setLocation('argumosa_kiosk');
     const npcIds = useGameStore.getState().npcs.map((n) => n.id);
     expect(npcIds).toEqual(['npc_mercedes_quintero', 'npc_inspectora_ruiz']);
+  });
+
+  it('keeps Case 001 and Case 002 progress independent when switching cases', () => {
+    const { addClue, completeQuest, selectCase } = useGameStore.getState();
+    addClue({ id: 'clue_note', title: 'Nota arrugada', description: 'case 001 clue' });
+    completeQuest('q1');
+
+    selectCase('case_002');
+    expect(useGameStore.getState().currentCaseId).toBe('case_002');
+    expect(useGameStore.getState().currentLocationId).toBe('church_san_cayetano');
+    expect(useGameStore.getState().discoveredClues).toEqual([]);
+    expect(useGameStore.getState().completedQuestIds).toEqual([]);
+
+    useGameStore
+      .getState()
+      .addClue({ id: 'case002_church_clue_wax', title: 'Cera negra en la tarima', description: 'case 002 clue' });
+    selectCase('case_001');
+    expect(useGameStore.getState().currentLocationId).toBe('bar_interior');
+    expect(useGameStore.getState().discoveredClues.map((c) => c.id)).toEqual(['clue_note']);
+    expect(useGameStore.getState().completedQuestIds).toEqual(['q1']);
+  });
+
+  it('solves Case 002 with Tomás and supporting evidence without affecting Case 001 culprit logic', () => {
+    const { selectCase, dismissBriefing, addClue, recordStatement, linkClueToStatement, accuse } =
+      useGameStore.getState();
+    selectCase('case_002');
+    dismissBriefing();
+    addClue({ id: 'case002_hotel_clue_ledger_gap', title: 'Hueco en el libro de noche', description: '' });
+    addClue({ id: 'case002_hotel_clue_waxed_umbrella', title: 'Paraguas con cera negra', description: '' });
+    addClue({ id: 'case002_grave_clue_angel_packet', title: 'Paquete bajo el ala del ángel', description: '' });
+    recordStatement({
+      id: 'tomas_at_desk_all_night',
+      npcId: 'npc_tomas_beltran',
+      topic: 'alibi',
+      value: 'Tomás dijo no haber dejado el mostrador entre las cinco y las seis',
+      sourceReply: '¿Dónde estuvo entre las cinco y las seis?',
+    });
+    expect(linkClueToStatement('case002_hotel_clue_ledger_gap', 'tomas_at_desk_all_night')).toEqual({ ok: true });
+    const supporting = useGameStore.getState().contradictions.map((c) => c.id);
+    accuse('npc_tomas_beltran', supporting);
+    expect(useGameStore.getState().caseResolution).toBe('solved');
+
+    selectCase('case_001');
+    expect(useGameStore.getState().caseResolution).toBeNull();
+    expect(getCaseDefinition(useGameStore.getState().currentCaseId).culprit).toBe(CASE_001_CULPRIT);
   });
 });

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Masthead } from '@/components/newsprint/Masthead';
 import { NewsprintPhoto } from '@/components/newsprint/NewsprintPhoto';
 import { Stamp } from '@/components/newsprint/Stamp';
-import { CASE_001_BILINGUAL_NPCS } from '@/game/content/case001-bilingual';
+import { getCaseDefinition } from '@/game/content/cases';
 import { useGameStore } from '@/store/useGameStore';
 
 interface AccusationOverlayProps {
@@ -13,6 +13,7 @@ interface AccusationOverlayProps {
 }
 
 export function AccusationOverlay({ open, onClose }: AccusationOverlayProps) {
+  const currentCaseId = useGameStore((state) => state.currentCaseId);
   const npcs = useGameStore((state) => state.npcs);
   const contradictions = useGameStore((state) => state.contradictions);
   const recordedStatements = useGameStore((state) => state.recordedStatements);
@@ -27,6 +28,7 @@ export function AccusationOverlay({ open, onClose }: AccusationOverlayProps) {
 
   if (!open) return null;
 
+  const caseDef = getCaseDefinition(currentCaseId);
   const isResolved = casePhase === 'resolved';
   const accusableNpcs = npcs.filter((n) => n.id !== 'npc_inspectora_ruiz');
   const accusedNpc = npcs.find((n) => n.id === accusedNpcId);
@@ -99,7 +101,7 @@ export function AccusationOverlay({ open, onClose }: AccusationOverlayProps) {
                   coartada. Madrid duerme un poco mejor esta noche.{' '}
                   <span className="handwritten" style={{ fontSize: 22 }}>
                     {' '}
-                    +25 XP
+                    +{caseDef.accusation.solvedXp} XP
                   </span>
                 </>
               ) : (
@@ -134,7 +136,7 @@ export function AccusationOverlay({ open, onClose }: AccusationOverlayProps) {
               }}
             >
               {accusableNpcs.map((npc) => {
-                const portrait = CASE_001_BILINGUAL_NPCS[npc.id]?.portrait ?? `/assets/characters/${npc.id}.png`;
+                const portrait = caseDef.bilingualNpcs[npc.id]?.portrait ?? `/assets/characters/${npc.id}.png`;
                 const selected = selectedNpcId === npc.id;
                 return (
                   <button

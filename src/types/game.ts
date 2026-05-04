@@ -1,4 +1,4 @@
-import type { LocationId } from '@/game/content/locations';
+export type LocationId = string;
 
 export interface DialogueMessage {
   speaker: 'npc' | 'player' | 'system';
