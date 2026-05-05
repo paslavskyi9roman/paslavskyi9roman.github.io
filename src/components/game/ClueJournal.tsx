@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Es } from '@/components/newsprint/Es';
 import { Stamp } from '@/components/newsprint/Stamp';
 import { getAllSceneClues, getCaseDefinition, getStatementValueTranslations } from '@/game/content/cases';
 import { useGameStore } from '@/store/useGameStore';
-import type { LocationId } from '@/types/game';
 
 interface ClueJournalProps {
   open: boolean;
@@ -17,64 +16,108 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
   const discoveredClues = useGameStore((state) => state.discoveredClues);
   const recordedStatements = useGameStore((state) => state.recordedStatements);
   const contradictions = useGameStore((state) => state.contradictions);
-  const npcs = useGameStore((state) => state.npcs);
   const currentLocationId = useGameStore((state) => state.currentLocationId);
   const linkClueToStatement = useGameStore((state) => state.linkClueToStatement);
   const [linkingClueId, setLinkingClueId] = useState<string | null>(null);
 
-  if (!open) return null;
-
-  const caseDef = getCaseDefinition(currentCaseId);
-  const allSceneClues = getAllSceneClues(caseDef);
+  const caseDef = useMemo(() => getCaseDefinition(currentCaseId), [currentCaseId]);
+  const allSceneClues = useMemo(() => getAllSceneClues(caseDef), [caseDef]);
   const totalSceneClues = allSceneClues.length;
-  const statementValueEn = getStatementValueTranslations(caseDef);
-
-  const sceneClueLookup = new Map(allSceneClues.map((clue) => [clue.id, clue]));
-  const clueLocation = Object.fromEntries(
-    caseDef.locationOrder.flatMap((locId) => (caseDef.sceneCluesByLocation[locId] ?? []).map((c) => [c.id, locId])),
-  ) as Record<string, LocationId>;
-  const npcLocation = Object.fromEntries(
-    caseDef.locationOrder.flatMap((locId) => (caseDef.locationNpcIds[locId] ?? []).map((npcId) => [npcId, locId])),
-  ) as Record<string, LocationId>;
-
-  const cluesByLocation = discoveredClues.reduce<Record<string, typeof discoveredClues>>((acc, clue) => {
-    const locId = clueLocation[clue.id];
-    if (!locId) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('[ClueJournal] unmapped clue', clue.id);
-      }
-      return acc;
-    }
-    (acc[locId] ??= []).push(clue);
-    return acc;
-  }, {});
-
-  const statementsByLocation = recordedStatements.reduce<Record<string, typeof recordedStatements>>(
-    (acc, statement) => {
-      const locId = npcLocation[statement.npcId];
-      if (!locId) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.warn('[ClueJournal] unmapped NPC for statement', statement.npcId);
-        }
-        return acc;
-      }
-      (acc[locId] ??= []).push(statement);
-      return acc;
-    },
-    {},
+  const statementValueEn = useMemo(() => getStatementValueTranslations(caseDef), [caseDef]);
+  const sceneClueLookup = useMemo(() => new Map(allSceneClues.map((clue) => [clue.id, clue])), [allSceneClues]);
+  const clueLocation = useMemo(
+    () =>
+      new Map(
+        caseDef.locationOrder.flatMap((locId) =>
+          (caseDef.sceneCluesByLocation[locId] ?? []).map((clue) => [clue.id, locId] as const),
+        ),
+      ),
+    [caseDef],
+  );
+  const npcLocation = useMemo(
+    () =>
+      new Map(
+        caseDef.locationOrder.flatMap((locId) =>
+          (caseDef.locationNpcIds[locId] ?? []).map((npcId) => [npcId, locId] as const),
+        ),
+      ),
+    [caseDef],
+  );
+  const npcLookup = useMemo(() => new Map(caseDef.npcs.map((npc) => [npc.id, npc])), [caseDef]);
+  const discoveredClueIds = useMemo(() => new Set(discoveredClues.map((clue) => clue.id)), [discoveredClues]);
+  const discoveredClueLookup = useMemo(
+    () => new Map(discoveredClues.map((clue) => [clue.id, clue])),
+    [discoveredClues],
+  );
+  const statementLookup = useMemo(
+    () => new Map(recordedStatements.map((statement) => [statement.id, statement])),
+    [recordedStatements],
+  );
+  const contradictionByClueId = useMemo(
+    () => new Map(contradictions.map((contradiction) => [contradiction.clueId, contradiction])),
+    [contradictions],
   );
 
-  const contradictionsByLocation = contradictions.reduce<Record<string, typeof contradictions>>((acc, c) => {
-    const locId = npcLocation[c.npcId];
-    if (!locId) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('[ClueJournal] unmapped NPC for contradiction', c.npcId);
-      }
-      return acc;
+  const cluesByLocation = useMemo(
+    () =>
+      discoveredClues.reduce<Record<string, typeof discoveredClues>>((acc, clue) => {
+        const locId = clueLocation.get(clue.id);
+        if (!locId) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn('[ClueJournal] unmapped clue', clue.id);
+          }
+          return acc;
+        }
+        (acc[locId] ??= []).push(clue);
+        return acc;
+      }, {}),
+    [clueLocation, discoveredClues],
+  );
+
+  const statementsByLocation = useMemo(
+    () =>
+      recordedStatements.reduce<Record<string, typeof recordedStatements>>((acc, statement) => {
+        const locId = npcLocation.get(statement.npcId);
+        if (!locId) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn('[ClueJournal] unmapped NPC for statement', statement.npcId);
+          }
+          return acc;
+        }
+        (acc[locId] ??= []).push(statement);
+        return acc;
+      }, {}),
+    [npcLocation, recordedStatements],
+  );
+
+  const contradictionsByLocation = useMemo(
+    () =>
+      contradictions.reduce<Record<string, typeof contradictions>>((acc, contradiction) => {
+        const locId = npcLocation.get(contradiction.npcId);
+        if (!locId) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn('[ClueJournal] unmapped NPC for contradiction', contradiction.npcId);
+          }
+          return acc;
+        }
+        (acc[locId] ??= []).push(contradiction);
+        return acc;
+      }, {}),
+    [contradictions, npcLocation],
+  );
+
+  const statementsByNpcByLocation = useMemo(() => {
+    const grouped: Record<string, Record<string, typeof recordedStatements>> = {};
+    for (const [locId, statements] of Object.entries(statementsByLocation)) {
+      grouped[locId] = statements.reduce<Record<string, typeof statements>>((acc, statement) => {
+        (acc[statement.npcId] ??= []).push(statement);
+        return acc;
+      }, {});
     }
-    (acc[locId] ??= []).push(c);
-    return acc;
-  }, {});
+    return grouped;
+  }, [statementsByLocation]);
+
+  if (!open) return null;
 
   return (
     <div
@@ -203,7 +246,7 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
                   ) : (
                     locClues.map((clue) => {
                       const scene = sceneClueLookup.get(clue.id);
-                      const linkedContradiction = contradictions.find((cx) => cx.clueId === clue.id);
+                      const linkedContradiction = contradictionByClueId.get(clue.id);
                       const isLinking = linkingClueId === clue.id;
                       return (
                         <div
@@ -277,7 +320,7 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
                                     }}
                                   >
                                     {recordedStatements.map((stmt) => {
-                                      const npc = npcs.find((n) => n.id === stmt.npcId);
+                                      const npc = npcLookup.get(stmt.npcId);
                                       return (
                                         <li key={stmt.id}>
                                           <button
@@ -315,7 +358,7 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
                       );
                     })
                   )}
-                  {locId === 'lucia_apartment' && discoveredClues.some((c) => c.id === 'apt_clue_grey_coat') && (
+                  {locId === 'lucia_apartment' && discoveredClueIds.has('apt_clue_grey_coat') && (
                     <div
                       style={{
                         marginTop: 14,
@@ -368,59 +411,53 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
                       <Es es="Aún sin declaraciones registradas." en="No statements recorded yet." />
                     </p>
                   ) : (
-                    (() => {
-                      const grouped = locStatements.reduce<Record<string, typeof locStatements>>((acc, s) => {
-                        (acc[s.npcId] ??= []).push(s);
-                        return acc;
-                      }, {});
-                      return Object.entries(grouped).map(([npcId, list]) => {
-                        const npc = npcs.find((n) => n.id === npcId);
-                        const portrait = caseDef.bilingualNpcs[npcId]?.portrait ?? `/assets/characters/${npcId}.png`;
-                        return (
-                          <div
-                            key={npcId}
-                            style={{
-                              marginTop: 10,
-                              padding: 10,
-                              border: '1px solid var(--ink)',
-                              background: 'var(--paper)',
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={portrait}
-                                alt={npc?.name ?? npcId}
-                                width={28}
-                                height={36}
-                                style={{ objectFit: 'cover', filter: 'sepia(0.4) contrast(1.2)' }}
-                              />
-                              <div style={{ fontFamily: 'var(--display)', fontWeight: 800, fontSize: 14 }}>
-                                {npc?.name ?? npcId}
-                              </div>
+                    Object.entries(statementsByNpcByLocation[locId] ?? {}).map(([npcId, list]) => {
+                      const npc = npcLookup.get(npcId);
+                      const portrait = caseDef.bilingualNpcs[npcId]?.portrait ?? `/assets/characters/${npcId}.png`;
+                      return (
+                        <div
+                          key={npcId}
+                          style={{
+                            marginTop: 10,
+                            padding: 10,
+                            border: '1px solid var(--ink)',
+                            background: 'var(--paper)',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={portrait}
+                              alt={npc?.name ?? npcId}
+                              width={28}
+                              height={36}
+                              style={{ objectFit: 'cover', filter: 'sepia(0.4) contrast(1.2)' }}
+                            />
+                            <div style={{ fontFamily: 'var(--display)', fontWeight: 800, fontSize: 14 }}>
+                              {npc?.name ?? npcId}
                             </div>
-                            <ul style={{ listStyle: 'none', padding: 0, margin: '6px 0 0' }}>
-                              {list.map((s) => (
-                                <li
-                                  key={s.id}
-                                  className="body-serif"
-                                  style={{
-                                    fontSize: 12,
-                                    padding: '4px 0',
-                                    borderBottom: '1px dotted var(--ink-faded)',
-                                  }}
-                                >
-                                  <span className="byline" style={{ fontSize: 9 }}>
-                                    [{s.topic}]
-                                  </span>{' '}
-                                  {statementValueEn[s.id] ? <Es es={s.value} en={statementValueEn[s.id]!} /> : s.value}
-                                </li>
-                              ))}
-                            </ul>
                           </div>
-                        );
-                      });
-                    })()
+                          <ul style={{ listStyle: 'none', padding: 0, margin: '6px 0 0' }}>
+                            {list.map((s) => (
+                              <li
+                                key={s.id}
+                                className="body-serif"
+                                style={{
+                                  fontSize: 12,
+                                  padding: '4px 0',
+                                  borderBottom: '1px dotted var(--ink-faded)',
+                                }}
+                              >
+                                <span className="byline" style={{ fontSize: 9 }}>
+                                  [{s.topic}]
+                                </span>{' '}
+                                {statementValueEn[s.id] ? <Es es={s.value} en={statementValueEn[s.id]!} /> : s.value}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })
                   )}
                 </section>
 
@@ -436,11 +473,11 @@ export function ClueJournal({ open, onClose }: ClueJournalProps) {
                     </p>
                   ) : (
                     locContradictions.map((c) => {
-                      const clue = discoveredClues.find((x) => x.id === c.clueId);
+                      const clue = discoveredClueLookup.get(c.clueId);
                       const clueScene = sceneClueLookup.get(c.clueId);
-                      const stmt = recordedStatements.find((x) => x.id === c.statementId);
+                      const stmt = statementLookup.get(c.statementId);
                       const stmtEn = statementValueEn[c.statementId];
-                      const npc = npcs.find((x) => x.id === c.npcId);
+                      const npc = npcLookup.get(c.npcId);
                       return (
                         <div
                           key={c.id}

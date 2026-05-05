@@ -71,6 +71,74 @@ describe('useGameStore', () => {
     expect(useGameStore.getState().discoveredClues.map((c) => c.id)).toEqual(['clue_a', 'clue_b']);
   });
 
+  it('applies a quick reply outcome as one coherent state transition', () => {
+    let transitions = 0;
+    const unsubscribe = useGameStore.subscribe(() => {
+      transitions += 1;
+    });
+
+    useGameStore.getState().applyQuickReplyOutcome(CASE_001_CULPRIT, '¿A qué hora llegaste a casa?');
+    unsubscribe();
+
+    const state = useGameStore.getState();
+    expect(transitions).toBe(1);
+    expect(state.dialogueHistory).toHaveLength(2);
+    expect(state.dialogueHistory.map((line) => line.speaker)).toEqual(['player', 'npc']);
+    expect(state.latestFeedback?.xpAwarded).toBe(10);
+    expect(state.investigationXp).toBe(10);
+    expect(state.recordedStatements.map((statement) => statement.id)).toEqual(['lucia_home_2230']);
+    expect(state.usedQuickReplies[CASE_001_CULPRIT]).toEqual(['¿A qué hora llegaste a casa?']);
+    expect(state.completedQuestIds).toContain('q1');
+  });
+
+  it('completes statement-gated dialogue quest rules when a quick reply records that statement', () => {
+    const caseDef = getCaseDefinition('case_001');
+    const originalRules = caseDef.dialogueQuestRules;
+    caseDef.dialogueQuestRules = [
+      ...originalRules,
+      { npcId: CASE_001_CULPRIT, statementId: 'lucia_home_2230', questId: 'statement_gate_test' },
+    ];
+
+    try {
+      useGameStore.getState().applyQuickReplyOutcome(CASE_001_CULPRIT, '¿A qué hora llegaste a casa?');
+      expect(useGameStore.getState().completedQuestIds).toContain('statement_gate_test');
+    } finally {
+      caseDef.dialogueQuestRules = originalRules;
+    }
+  });
+
+  it('keeps unlock feedback when scene clue discovery completes an unlocking quest', () => {
+    const { completeQuest, discoverSceneClue } = useGameStore.getState();
+    completeQuest('q1');
+    completeQuest('q3');
+    discoverSceneClue({ id: 'clue_note', title: 'Nota rasgada', description: '23:40 salida trasera' });
+
+    const xpBeforeUnlockingClue = useGameStore.getState().investigationXp;
+    discoverSceneClue({ id: 'clue_receipt', title: 'Ticket del Metro', description: 'metro' });
+
+    const state = useGameStore.getState();
+    expect(state.completedQuestIds).toEqual(expect.arrayContaining(['q1', 'q2', 'q3']));
+    expect(state.latestFeedback?.explanation).toContain('¡Enhorabuena!');
+    expect(state.investigationXp).toBe(xpBeforeUnlockingClue);
+  });
+
+  it('keeps duplicate quick replies and scene clues idempotent', () => {
+    const { applyQuickReplyOutcome, discoverSceneClue } = useGameStore.getState();
+    applyQuickReplyOutcome(CASE_001_CULPRIT, '¿A qué hora llegaste a casa?');
+    applyQuickReplyOutcome(CASE_001_CULPRIT, '¿A qué hora llegaste a casa?');
+    discoverSceneClue({ id: 'clue_note', title: 'Nota rasgada', description: '23:40 salida trasera' });
+    discoverSceneClue({ id: 'clue_note', title: 'Nota rasgada duplicada', description: 'ignored' });
+
+    const state = useGameStore.getState();
+    expect(state.dialogueHistory).toHaveLength(2);
+    expect(state.investigationXp).toBe(23);
+    expect(state.recordedStatements).toHaveLength(1);
+    expect(state.discoveredClues).toEqual([
+      { id: 'clue_note', title: 'Nota rasgada', description: '23:40 salida trasera' },
+    ]);
+    expect(state.usedQuickReplies[CASE_001_CULPRIT]).toEqual(['¿A qué hora llegaste a casa?']);
+  });
+
   it('does not double-complete a quest', () => {
     const { completeQuest } = useGameStore.getState();
     completeQuest('q1');

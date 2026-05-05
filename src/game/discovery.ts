@@ -4,21 +4,25 @@ import type { Clue, NpcStatement } from '@/types/game';
 interface AvailabilityContext {
   discoveredClues: ReadonlyArray<Clue>;
   recordedStatements: ReadonlyArray<NpcStatement>;
+  discoveredClueIds?: ReadonlySet<string>;
+  recordedStatementIds?: ReadonlySet<string>;
 }
 
 export const isSceneClueAvailable = (
   clue: SceneClue,
-  { discoveredClues, recordedStatements }: AvailabilityContext,
+  { discoveredClues, recordedStatements, discoveredClueIds, recordedStatementIds }: AvailabilityContext,
 ): boolean => {
   if (!clue.requires) return true;
   const { clueIds, statementIds } = clue.requires;
+  const clueIdSet = discoveredClueIds ?? new Set(discoveredClues.map((discoveredClue) => discoveredClue.id));
+  const statementIdSet = recordedStatementIds ?? new Set(recordedStatements.map((statement) => statement.id));
   if (clueIds && clueIds.length > 0) {
-    if (!clueIds.every((id) => discoveredClues.some((c) => c.id === id))) {
+    if (!clueIds.every((id) => clueIdSet.has(id))) {
       return false;
     }
   }
   if (statementIds && statementIds.length > 0) {
-    if (!statementIds.every((id) => recordedStatements.some((s) => s.id === id))) {
+    if (!statementIds.every((id) => statementIdSet.has(id))) {
       return false;
     }
   }

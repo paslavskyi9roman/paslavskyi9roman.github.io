@@ -4,7 +4,11 @@ import Link from 'next/link';
 import { useGameStore } from '@/store/useGameStore';
 
 export default function DashboardPage() {
-  const { vocabularyXp, grammarXp, investigationXp, discoveredClues, currentCaseId } = useGameStore();
+  const vocabularyXp = useGameStore((state) => state.vocabularyXp);
+  const grammarXp = useGameStore((state) => state.grammarXp);
+  const investigationXp = useGameStore((state) => state.investigationXp);
+  const discoveredClues = useGameStore((state) => state.discoveredClues);
+  const currentCaseId = useGameStore((state) => state.currentCaseId);
 
   return (
     <div className="paper" style={{ minHeight: '100vh', padding: '24px 60px 40px' }}>

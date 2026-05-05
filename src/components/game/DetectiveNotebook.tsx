@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { Quest } from '@/types/game';
 import { Es } from '@/components/newsprint/Es';
 import { MeterRow } from '@/components/newsprint/MeterRow';
@@ -17,10 +18,19 @@ export function DetectiveNotebook() {
   const quests = useGameStore((s) => s.quests);
   const completedQuestIds = useGameStore((s) => s.completedQuestIds);
   const currentLocationId = useGameStore((s) => s.currentLocationId);
-  const caseDef = getCaseDefinition(currentCaseId);
+  const caseDef = useMemo(() => getCaseDefinition(currentCaseId), [currentCaseId]);
+  const completedQuestIdSet = useMemo(() => new Set(completedQuestIds), [completedQuestIds]);
+  const questsByLocation = useMemo(
+    () =>
+      quests.reduce<Record<string, Quest[]>>((acc, quest) => {
+        (acc[quest.locationId] ??= []).push(quest);
+        return acc;
+      }, {}),
+    [quests],
+  );
 
   const renderQuestRow = (q: Quest) => {
-    const done = completedQuestIds.includes(q.id);
+    const done = completedQuestIdSet.has(q.id);
     const en = caseDef.questBilingual[q.id];
     return (
       <li
@@ -107,10 +117,10 @@ export function DetectiveNotebook() {
           <Es es="Misiones" en="Quests" />
         </span>
         {caseDef.locationOrder.map((locId) => {
-          const locQuests = quests.filter((q) => q.locationId === locId);
+          const locQuests = questsByLocation[locId] ?? [];
           if (locQuests.length === 0) return null;
           const isCurrent = locId === currentLocationId;
-          const doneCount = locQuests.filter((q) => completedQuestIds.includes(q.id)).length;
+          const doneCount = locQuests.filter((q) => completedQuestIdSet.has(q.id)).length;
           const loc = caseDef.locations[locId]!;
           const summary = (
             <span
