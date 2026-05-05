@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { SceneCanvas } from '@/components/game/SceneCanvas';
 import { SceneLightbox } from '@/components/game/SceneLightbox';
 import type { SceneClue } from '@/game/content/case001-bilingual';
 import { ARGUMOSA_SCENE_CLUES } from '@/game/content/case001-argumosa-bilingual';
-import { ARGUMOSA_ROUTE_QUEST_REQUIRED_CLUES } from '@/game/content/case001-argumosa';
 import { LOCATIONS } from '@/game/content/locations';
 import { useGameStore } from '@/store/useGameStore';
 import { playSfx } from '@/lib/sfx';
@@ -16,35 +15,31 @@ const LOCATION = LOCATIONS.argumosa_kiosk;
 export function ArgumosaScene() {
   const discoveredClues = useGameStore((state) => state.discoveredClues);
   const recordedStatements = useGameStore((state) => state.recordedStatements);
-  const addClue = useGameStore((state) => state.addClue);
-  const completeQuest = useGameStore((state) => state.completeQuest);
-  const applyFeedback = useGameStore((state) => state.applyFeedback);
+  const discoverSceneClue = useGameStore((state) => state.discoverSceneClue);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  const argumosaCluesFound = discoveredClues.filter((c) => ARGUMOSA_SCENE_CLUES.some((sc) => sc.id === c.id)).length;
-  const availableClues = ARGUMOSA_SCENE_CLUES.filter((clue) =>
-    isSceneClueAvailable(clue, { discoveredClues, recordedStatements }),
+  const argumosaSceneClueIds = useMemo(() => new Set(ARGUMOSA_SCENE_CLUES.map((clue) => clue.id)), []);
+  const discoveredClueIds = useMemo(() => new Set(discoveredClues.map((clue) => clue.id)), [discoveredClues]);
+  const recordedStatementIds = useMemo(
+    () => new Set(recordedStatements.map((statement) => statement.id)),
+    [recordedStatements],
+  );
+  const argumosaCluesFound = useMemo(
+    () => discoveredClues.filter((clue) => argumosaSceneClueIds.has(clue.id)).length,
+    [argumosaSceneClueIds, discoveredClues],
+  );
+  const availableClues = useMemo(
+    () =>
+      ARGUMOSA_SCENE_CLUES.filter((clue) =>
+        isSceneClueAvailable(clue, { discoveredClues, recordedStatements, discoveredClueIds, recordedStatementIds }),
+      ),
+    [discoveredClueIds, discoveredClues, recordedStatementIds, recordedStatements],
   );
 
   const findClue = (clue: SceneClue) => {
-    if (discoveredClues.some((c) => c.id === clue.id)) return;
-    addClue({ id: clue.id, title: clue.title, description: clue.description });
+    if (discoveredClueIds.has(clue.id)) return;
+    discoverSceneClue({ id: clue.id, title: clue.title, description: clue.description });
     playSfx('record');
-    const stateAfter = useGameStore.getState();
-    const argumosaFoundAfter = stateAfter.discoveredClues.filter((c) =>
-      ARGUMOSA_SCENE_CLUES.some((sc) => sc.id === c.id),
-    ).length;
-    if (argumosaFoundAfter >= ARGUMOSA_ROUTE_QUEST_REQUIRED_CLUES) {
-      completeQuest('q6');
-    }
-    applyFeedback(
-      {
-        isUnderstandable: true,
-        xpAwarded: 13,
-        explanation: 'Indicio archivado en el kiosko de Argumosa — la testigo se acerca un poco más.',
-      },
-      'investigation',
-    );
   };
 
   return (

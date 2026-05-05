@@ -9,22 +9,19 @@ import { useGameStore } from '@/store/useGameStore';
 import type { DialogueMessage } from '@/types/game';
 
 export function InterrogationPanel() {
-  const {
-    currentCaseId,
-    currentLocationId,
-    dialogueHistory,
-    discoveredClues,
-    selectedNpc,
-    npcs,
-    usedQuickReplies,
-    selectNpcById,
-    addPlayerLine,
-    addNpcLine,
-    addSystemLine,
-    applyFeedback,
-    recordStatement,
-    recordUsedReply,
-  } = useGameStore();
+  const currentCaseId = useGameStore((state) => state.currentCaseId);
+  const currentLocationId = useGameStore((state) => state.currentLocationId);
+  const dialogueHistory = useGameStore((state) => state.dialogueHistory);
+  const discoveredClues = useGameStore((state) => state.discoveredClues);
+  const selectedNpc = useGameStore((state) => state.selectedNpc);
+  const npcs = useGameStore((state) => state.npcs);
+  const usedQuickReplies = useGameStore((state) => state.usedQuickReplies);
+  const selectNpcById = useGameStore((state) => state.selectNpcById);
+  const addPlayerLine = useGameStore((state) => state.addPlayerLine);
+  const addNpcLine = useGameStore((state) => state.addNpcLine);
+  const addSystemLine = useGameStore((state) => state.addSystemLine);
+  const applyFeedback = useGameStore((state) => state.applyFeedback);
+  const applyQuickReplyOutcome = useGameStore((state) => state.applyQuickReplyOutcome);
   const caseDef = getCaseDefinition(currentCaseId);
   const [freeText, setFreeText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -65,16 +62,7 @@ export function InterrogationPanel() {
     if (!selectedNpc) return;
     const outcome = caseDef.outcomes[selectedNpc.id]?.[replyText];
     if (!outcome) return;
-
-    addPlayerLine(replyText);
-    addNpcLine(outcome.reply, { id: selectedNpc.id, name: selectedNpc.name });
-    applyFeedback(outcome.feedback, outcome.xpType);
-
-    if (outcome.statement) {
-      recordStatement({ ...outcome.statement, npcId: selectedNpc.id, sourceReply: replyText });
-    }
-
-    recordUsedReply(selectedNpc.id, replyText);
+    applyQuickReplyOutcome(selectedNpc.id, replyText);
   };
 
   const submitFreeText = async (event: FormEvent) => {

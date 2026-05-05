@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Masthead } from '@/components/newsprint/Masthead';
 import { NewsprintPhoto } from '@/components/newsprint/NewsprintPhoto';
 import { Stamp } from '@/components/newsprint/Stamp';
@@ -26,12 +26,18 @@ export function AccusationOverlay({ open, onClose }: AccusationOverlayProps) {
   const [selectedNpcId, setSelectedNpcId] = useState<string | null>(null);
   const [selectedContradictionIds, setSelectedContradictionIds] = useState<Set<string>>(new Set());
 
-  if (!open) return null;
-
-  const caseDef = getCaseDefinition(currentCaseId);
+  const caseDef = useMemo(() => getCaseDefinition(currentCaseId), [currentCaseId]);
+  const npcLookup = useMemo(() => new Map(npcs.map((npc) => [npc.id, npc])), [npcs]);
+  const clueLookup = useMemo(() => new Map(discoveredClues.map((clue) => [clue.id, clue])), [discoveredClues]);
+  const statementLookup = useMemo(
+    () => new Map(recordedStatements.map((statement) => [statement.id, statement])),
+    [recordedStatements],
+  );
   const isResolved = casePhase === 'resolved';
   const accusableNpcs = npcs.filter((n) => n.id !== 'npc_inspectora_ruiz');
-  const accusedNpc = npcs.find((n) => n.id === accusedNpcId);
+  const accusedNpc = accusedNpcId ? npcLookup.get(accusedNpcId) : undefined;
+
+  if (!open) return null;
 
   const toggleContradiction = (id: string) => {
     setSelectedContradictionIds((prev) => {
@@ -191,8 +197,8 @@ export function AccusationOverlay({ open, onClose }: AccusationOverlayProps) {
                 </p>
               ) : (
                 contradictions.map((c) => {
-                  const clue = discoveredClues.find((x) => x.id === c.clueId);
-                  const stmt = recordedStatements.find((x) => x.id === c.statementId);
+                  const clue = clueLookup.get(c.clueId);
+                  const stmt = statementLookup.get(c.statementId);
                   const checked = selectedContradictionIds.has(c.id);
                   return (
                     <label

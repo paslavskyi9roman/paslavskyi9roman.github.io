@@ -49,10 +49,12 @@ interface GameState extends CaseProgress {
   addNpcLine: (text: string, npc?: Pick<NpcProfile, 'id' | 'name'>) => void;
   addSystemLine: (text: string) => void;
   addClue: (clue: Clue) => void;
+  discoverSceneClue: (clue: Clue) => void;
   completeQuest: (questId: string) => void;
   applyFeedback: (feedback: DialogueFeedback, xpType: 'vocabulary' | 'grammar' | 'investigation') => void;
   recordStatement: (statement: Omit<NpcStatement, 'recordedAt'>) => void;
   recordUsedReply: (npcId: string, replyText: string) => void;
+  applyQuickReplyOutcome: (npcId: string, replyText: string) => void;
   dismissBriefing: () => void;
   linkClueToStatement: (clueId: string, statementId: string) => { ok: boolean };
   accuse: (npcId: string, supportingContradictionIds: string[]) => void;
@@ -62,6 +64,13 @@ const STORAGE_KEY = 'madrid-noir-v1';
 const STORAGE_VERSION = 6;
 
 const CONTRADICTION_LINK_XP = 8;
+const SCENE_CLUE_DISCOVERY_XP = 13;
+
+const SCENE_CLUE_DISCOVERY_FEEDBACK: DialogueFeedback = {
+  isUnderstandable: true,
+  xpAwarded: SCENE_CLUE_DISCOVERY_XP,
+  explanation: 'Pista archivada en el expediente.',
+};
 
 const buildNpcsForLocation = (caseDef: CaseDefinition, locationId: LocationId): NpcProfile[] => {
   const ids = caseDef.locationNpcIds[locationId] ?? [];
@@ -184,10 +193,10 @@ const applyQuestCompletion = (caseDef: CaseDefinition, progress: CaseProgress, q
 
 const applyClueQuestRules = (caseDef: CaseDefinition, progress: CaseProgress): CaseProgress => {
   let next = progress;
+  const foundIds = new Set(progress.discoveredClues.map((clue) => clue.id));
   for (const rule of caseDef.clueQuestRules) {
     if (rule.locationId !== progress.currentLocationId) continue;
     const locationClues = caseDef.sceneCluesByLocation[rule.locationId] ?? [];
-    const foundIds = new Set(next.discoveredClues.map((clue) => clue.id));
     const minMet =
       typeof rule.minClues === 'number' &&
       locationClues.filter((clue) => foundIds.has(clue.id)).length >= rule.minClues;
@@ -207,15 +216,13 @@ const applyDialogueQuestRules = (
   statementId?: string,
 ): CaseProgress => {
   let next = progress;
+  const discoveredClueIds = new Set(progress.discoveredClues.map((clue) => clue.id));
   for (const rule of caseDef.dialogueQuestRules) {
     if (rule.locationId && rule.locationId !== progress.currentLocationId) continue;
     if (rule.npcId && rule.npcId !== npcId) continue;
     if (rule.replyText && rule.replyText !== replyText) continue;
     if (rule.statementId && rule.statementId !== statementId) continue;
-    if (
-      rule.requiredClueIds &&
-      !rule.requiredClueIds.every((id) => progress.discoveredClues.some((c) => c.id === id))
-    ) {
+    if (rule.requiredClueIds && !rule.requiredClueIds.every((id) => discoveredClueIds.has(id))) {
       continue;
     }
     next = applyQuestCompletion(caseDef, next, rule.questId);
@@ -349,6 +356,28 @@ export const useGameStore = create<GameState>()(
         const withClue = { ...progress, discoveredClues: [...progress.discoveredClues, clue] };
         setActiveProgress(set, state, applyClueQuestRules(caseDef, withClue));
       },
+      discoverSceneClue: (clue) => {
+        const state = get();
+        const caseDef = getCaseDefinition(state.currentCaseId);
+        const progress = getProgress(state);
+        const discoveredClueIds = new Set(progress.discoveredClues.map((existing) => existing.id));
+        if (discoveredClueIds.has(clue.id)) return;
+
+        const withClue: CaseProgress = {
+          ...progress,
+          discoveredClues: [...progress.discoveredClues, clue],
+        };
+        const afterQuestRules = applyClueQuestRules(caseDef, withClue);
+        const questProducedFeedback = afterQuestRules.latestFeedback !== withClue.latestFeedback;
+        const next: CaseProgress = questProducedFeedback
+          ? afterQuestRules
+          : {
+              ...afterQuestRules,
+              latestFeedback: SCENE_CLUE_DISCOVERY_FEEDBACK,
+              investigationXp: afterQuestRules.investigationXp + SCENE_CLUE_DISCOVERY_XP,
+            };
+        setActiveProgress(set, state, next);
+      },
       completeQuest: (questId) => {
         const state = get();
         const caseDef = getCaseDefinition(state.currentCaseId);
@@ -377,6 +406,60 @@ export const useGameStore = create<GameState>()(
         };
         setActiveProgress(set, state, applyDialogueQuestRules(caseDef, withReply, npcId, replyText));
       },
+      applyQuickReplyOutcome: (npcId, replyText) => {
+        const state = get();
+        const caseDef = getCaseDefinition(state.currentCaseId);
+        const progress = getProgress(state);
+        const outcome = caseDef.outcomes[npcId]?.[replyText];
+        if (!outcome) return;
+
+        const existingReplies = progress.usedQuickReplies[npcId] ?? [];
+        if (existingReplies.includes(replyText)) return;
+
+        const npc =
+          buildNpcsForLocation(caseDef, progress.currentLocationId).find((profile) => profile.id === npcId) ??
+          caseDef.npcs.find((profile) => profile.id === npcId);
+        const now = Date.now();
+        const statementId = outcome.statement?.id;
+        const alreadyRecordedStatement =
+          statementId !== undefined && progress.recordedStatements.some((statement) => statement.id === statementId);
+        const nextStatements =
+          outcome.statement && !alreadyRecordedStatement
+            ? [
+                ...progress.recordedStatements,
+                {
+                  ...outcome.statement,
+                  npcId,
+                  sourceReply: replyText,
+                  recordedAt: now,
+                },
+              ]
+            : progress.recordedStatements;
+
+        let next: CaseProgress = {
+          ...progress,
+          dialogueHistory: [
+            ...progress.dialogueHistory,
+            { speaker: 'player', text: replyText, timestamp: now },
+            {
+              speaker: 'npc',
+              text: outcome.reply,
+              timestamp: now,
+              npcId,
+              npcName: npc?.name,
+            },
+          ],
+          recordedStatements: nextStatements,
+          usedQuickReplies: { ...progress.usedQuickReplies, [npcId]: [...existingReplies, replyText] },
+          latestFeedback: outcome.feedback,
+          vocabularyXp: progress.vocabularyXp + (outcome.xpType === 'vocabulary' ? outcome.feedback.xpAwarded : 0),
+          grammarXp: progress.grammarXp + (outcome.xpType === 'grammar' ? outcome.feedback.xpAwarded : 0),
+          investigationXp:
+            progress.investigationXp + (outcome.xpType === 'investigation' ? outcome.feedback.xpAwarded : 0),
+        };
+        next = applyDialogueQuestRules(caseDef, next, npcId, replyText, statementId);
+        setActiveProgress(set, state, next);
+      },
       recordStatement: (statement) => {
         const state = get();
         const progress = getProgress(state);
@@ -400,8 +483,10 @@ export const useGameStore = create<GameState>()(
         const state = get();
         const caseDef = getCaseDefinition(state.currentCaseId);
         const progress = getProgress(state);
-        const clue = progress.discoveredClues.find((c) => c.id === clueId);
-        const statement = progress.recordedStatements.find((s) => s.id === statementId);
+        const clueById = new Map(progress.discoveredClues.map((clue) => [clue.id, clue]));
+        const statementById = new Map(progress.recordedStatements.map((statement) => [statement.id, statement]));
+        const clue = clueById.get(clueId);
+        const statement = statementById.get(statementId);
         if (!clue || !statement) {
           setActiveProgress(set, state, {
             ...progress,
@@ -415,7 +500,8 @@ export const useGameStore = create<GameState>()(
         }
 
         const recordId = `${clueId}__${statementId}`;
-        if (progress.contradictions.some((existing) => existing.id === recordId)) return { ok: true };
+        const contradictionIds = new Set(progress.contradictions.map((existing) => existing.id));
+        if (contradictionIds.has(recordId)) return { ok: true };
 
         const isMatch = caseDef.clueContradictions[clueId]?.includes(statementId) ?? false;
         if (!isMatch) {
@@ -467,13 +553,13 @@ export const useGameStore = create<GameState>()(
         const caseDef = getCaseDefinition(state.currentCaseId);
         const progress = getProgress(state);
         if (progress.casePhase !== 'accusation') return;
-        const validIds = supportingContradictionIds.filter((id) =>
-          progress.contradictions.some((record) => record.id === id),
-        );
+        const contradictionIds = new Set(progress.contradictions.map((record) => record.id));
+        const validIds = supportingContradictionIds.filter((id) => contradictionIds.has(id));
         const supportedByEvidence = validIds.length > 0;
+        const discoveredClueIds = new Set(progress.discoveredClues.map((clue) => clue.id));
         const requiredCluesMet =
           !caseDef.accusation.requiredClueIds ||
-          caseDef.accusation.requiredClueIds.every((id) => progress.discoveredClues.some((clue) => clue.id === id));
+          caseDef.accusation.requiredClueIds.every((id) => discoveredClueIds.has(id));
         const correctSuspect = npcId === caseDef.culprit;
         const solved = correctSuspect && supportedByEvidence && requiredCluesMet;
         const xp = solved ? caseDef.accusation.solvedXp : caseDef.accusation.failedXp;

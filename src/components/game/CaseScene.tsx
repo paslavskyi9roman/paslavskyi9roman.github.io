@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { SceneCanvas } from '@/components/game/SceneCanvas';
 import { SceneLightbox } from '@/components/game/SceneLightbox';
 import { getCaseDefinition, getSceneClues } from '@/game/content/cases';
@@ -14,30 +14,34 @@ export function CaseScene() {
   const currentLocationId = useGameStore((state) => state.currentLocationId);
   const discoveredClues = useGameStore((state) => state.discoveredClues);
   const recordedStatements = useGameStore((state) => state.recordedStatements);
-  const addClue = useGameStore((state) => state.addClue);
-  const applyFeedback = useGameStore((state) => state.applyFeedback);
+  const discoverSceneClue = useGameStore((state) => state.discoverSceneClue);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const caseDef = getCaseDefinition(currentCaseId);
   const location = caseDef.locations[currentLocationId] ?? caseDef.locations[caseDef.defaultLocationId]!;
   const sceneClues = getSceneClues(caseDef, location.id);
-  const availableClues = sceneClues.filter((clue) =>
-    isSceneClueAvailable(clue, { discoveredClues, recordedStatements }),
+  const sceneClueIds = useMemo(() => new Set(sceneClues.map((clue) => clue.id)), [sceneClues]);
+  const discoveredClueIds = useMemo(() => new Set(discoveredClues.map((clue) => clue.id)), [discoveredClues]);
+  const recordedStatementIds = useMemo(
+    () => new Set(recordedStatements.map((statement) => statement.id)),
+    [recordedStatements],
   );
-  const locationCluesFound = discoveredClues.filter((clue) => sceneClues.some((scene) => scene.id === clue.id)).length;
+  const availableClues = useMemo(
+    () =>
+      sceneClues.filter((clue) =>
+        isSceneClueAvailable(clue, { discoveredClues, recordedStatements, discoveredClueIds, recordedStatementIds }),
+      ),
+    [discoveredClueIds, discoveredClues, recordedStatementIds, recordedStatements, sceneClues],
+  );
+  const locationCluesFound = useMemo(
+    () => discoveredClues.filter((clue) => sceneClueIds.has(clue.id)).length,
+    [discoveredClues, sceneClueIds],
+  );
 
   const findClue = (clue: SceneClue) => {
-    if (discoveredClues.some((c) => c.id === clue.id)) return;
-    addClue({ id: clue.id, title: clue.title, description: clue.description });
+    if (discoveredClueIds.has(clue.id)) return;
+    discoverSceneClue({ id: clue.id, title: clue.title, description: clue.description });
     playSfx('record');
-    applyFeedback(
-      {
-        isUnderstandable: true,
-        xpAwarded: 13,
-        explanation: 'Pista archivada en el expediente.',
-      },
-      'investigation',
-    );
   };
 
   return (
